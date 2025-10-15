@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>draft RefLayout - CUTLASS Notes</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "draft RefLayout";
+        var mkdocs_page_input_path = "design/cute/draft_RefLayout.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> CUTLASS Notes
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Design</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" >cute</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../copy/">copy</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../draft_tiledCopy/">draft</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">CUTLASS Notes</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">draft RefLayout</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <p>让我解释一下 <code>RefLayout</code> 在 CUTLASS 中的作用。</p>
+<h2 id="reflayout">RefLayout 的作用</h2>
+<p><code>RefLayout</code>（Reference Layout）是 Copy_Traits 中的一个重要概念，用于定义复制操作中的参考布局。从代码注释中可以看出：</p>
+<pre><code>* concept Copy_Traits
+* {
+*   using ThrID     =    // Logical thread id (tid) -&gt; tidx
+*
+*   using SrcLayout =    // (Logical src thread id (tid), Logical src value id (vid)) -&gt; bit
+*   using DstLayout =    // (Logical dst thread id (tid), Logical dst value id (vid)) -&gt; bit
+*   using RefLayout =    // (Logical ref thread id (tid), Logical ref value id (vid)) -&gt; bit
+* };
+*
+* The abstract bit ordering of the Copy_Traits (the codomain of SrcLayout, DstLayout, and RefLayout)
+* is arbitrary and only used to construct maps
+*   (ref-tid,ref-vid) -&gt; (src-tid,src-vid)
+*   (ref-tid,ref-vid) -&gt; (dst-tid,dst-vid)
+* in TiledCopy. The Layout_TV in TiledCopy is in accordance with the RefLayout of a Traits, then mapped to
+* the Src or Dst (tid,vid) representation on demand.
+</code></pre>
+<h2 id="_1">详细解释</h2>
+<ol>
+<li><strong>参考布局的作用</strong>：</li>
+<li><code>RefLayout</code> 是一个参考坐标系，用于在 TiledCopy 中构建从参考布局到源布局和目标布局的映射关系</li>
+<li>
+<p>它定义了线程和数据值之间的逻辑关系，作为构建其他映射的基准</p>
+</li>
+<li>
+<p><strong>映射关系</strong>：</p>
+</li>
+<li>
+<p>TiledCopy 使用 <code>RefLayout</code> 构建两个重要映射：</p>
+<ul>
+<li>从参考布局到源布局的映射：<code>(ref-tid,ref-vid) -&gt; (src-tid,src-vid)</code></li>
+<li>从参考布局到目标布局的映射：<code>(ref-tid,ref-vid) -&gt; (dst-tid,dst-vid)</code></li>
+</ul>
+</li>
+<li>
+<p><strong>为什么选择 SrcLayout 或 DstLayout 作为 RefLayout</strong>：</p>
+</li>
+<li>这个选择是任意的，但在不同架构中可能基于优化考虑而不同</li>
+<li>在大多数架构（如 SM80）中，选择 <code>SrcLayout</code> 作为参考布局，可能是因为源数据通常是复制操作的起点</li>
+<li>
+<p>在某些架构（如 SM100）中，选择 <code>DstLayout</code> 作为参考布局，可能是因为目标布局的访问模式更适合该架构的优化</p>
+</li>
+<li>
+<p><strong>实际应用</strong>：</p>
+</li>
+<li>在构造 TiledCopy 时，系统会根据 RefLayout 构建相应的映射关系</li>
+<li>这些映射关系用于在实际复制操作中正确地将数据从源位置映射到目标位置</li>
+</ol>
+<h2 id="_2">总结</h2>
+<p><code>RefLayout</code> 是一个抽象概念，用于统一管理复制操作中线程和数据值之间的映射关系。它作为参考坐标系，帮助构建从逻辑布局到实际源和目标布局的转换。选择源布局还是目标布局作为参考布局主要取决于架构特性和优化需求，但对最终功能没有影响，只是实现方式的不同。</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

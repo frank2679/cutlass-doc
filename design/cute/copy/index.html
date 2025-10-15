@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>copy - CUTLASS Notes</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "copy";
+        var mkdocs_page_input_path = "design/cute/copy.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> CUTLASS Notes
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Design</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" >cute</a>
+    <ul class="current">
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">copy</a>
+    <ul class="current">
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../draft_tiledCopy/">draft</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">CUTLASS Notes</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Design</li>
+          <li class="breadcrumb-item">cute</li>
+      <li class="breadcrumb-item active">copy</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h2 id="cute">CUTE</h2>
+<p>下面内容简要说明 <code>cute::copy</code> 的抽象结构、模块组成以及它们如何协同工作。</p>
+<h2 id="cute-copy">Cute Copy 抽象概述</h2>
+<p>Cute 的 copy 抽象提供了一个统一的接口来执行各种类型的内存拷贝操作，从简单的寄存器到寄存器拷贝到复杂的张量操作和硬件加速的异步拷贝。</p>
+<h2 id="api">主要模块和 API</h2>
+<h3 id="1-copyatom">1. CopyAtom 模块</h3>
+<p>CopyAtom 是 copy 操作的基本构建单元，它封装了底层硬件指令的特性。</p>
+<p>API 特点：</p>
+<ul>
+<li><code>Copy_Atom&lt;CopyOperation, CopyInternalType&gt;</code>: 定义一个 copy 原子操作</li>
+<li><code>call()</code>: 执行实际的 copy 操作</li>
+<li><code>with()</code>: 为 copy 操作添加额外参数</li>
+<li>Copy_Traits: 定义 copy 操作的特征，包括线程布局和数据布局。</li>
+<li><code>Copy_Traits</code>: 定义 copy 操作的特征</li>
+<li><code>copy_unpack()</code>: 解包并执行 copy 操作</li>
+<li>CopyOperation 定义了底层硬件 copy 操作和基本的 copy 策略。</li>
+</ul>
+<p><strong>CopyOperation</strong></p>
+<pre><code class="language-cpp">// 最基本的 copy 操作
+template &lt;class S, class D = S&gt;
+struct UniversalCopy {
+  CUTE_HOST_DEVICE static constexpr void copy(S const&amp; src, D&amp; dst) {
+    dst = src;
+  }
+};
+</code></pre>
+<p><strong>Copy_Traits</strong></p>
+<pre><code class="language-cpp">/**
+ * concept Copy_Traits
+ * {
+ *   using ThrID     =    // Logical thread id (tid) -&gt; tidx
+ *
+ *   using SrcLayout =    // (Logical src thread id (tid), Logical src value id (vid)) -&gt; bit
+ *   using DstLayout =    // (Logical dst thread id (tid), Logical dst value id (vid)) -&gt; bit
+ *   using RefLayout =    // (Logical ref thread id (tid), Logical ref value id (vid)) -&gt; bit
+ * };
+ *
+ * The abstract bit ordering of the Copy_Traits (the codomain of SrcLayout, DstLayout, and RefLayout)
+ * is arbitrary and only used to construct maps
+ *   (ref-tid,ref-vid) -&gt; (src-tid,src-vid)
+ *   (ref-tid,ref-vid) -&gt; (dst-tid,dst-vid)
+ * in TiledCopy. The Layout_TV in TiledCopy is in accordance with the RefLayout of a Traits, then mapped to
+ * the Src or Dst (tid,vid) representation on demand.
+ *
+ */
+
+template &lt;class CopyOperation, class... CopyOpArgs&gt;
+struct Copy_Traits
+{
+  static_assert(dependent_false&lt;CopyOperation&gt;, &quot;Copy_Traits not implemented for this CopyOperation.&quot;);
+};
+
+template &lt;class S, class D&gt;
+struct Copy_Traits&lt;UniversalCopy&lt;S,D&gt;&gt;
+{
+  // Logical thread id to thread idx (one-thread)
+  using ThrID = Layout&lt;_1&gt;;
+
+  // Map from (src-thr,src-val) to bit
+  using SrcLayout = Layout&lt;Shape&lt;_1,Int&lt;sizeof_bits&lt;S&gt;::value&gt;&gt;&gt;;
+  // Map from (dst-thr,dst-val) to bit
+  using DstLayout = Layout&lt;Shape&lt;_1,Int&lt;sizeof_bits&lt;D&gt;::value&gt;&gt;&gt;;
+
+  // Reference map from (thr,val) to bit
+  using RefLayout = SrcLayout;
+};
+</code></pre>
+<p><strong>Copy_Atom</strong></p>
+<pre><code class="language-cpp">template &lt;class... Args, class CopyInternalType&gt;
+struct Copy_Atom&lt;Copy_Traits&lt;Args...&gt;, CopyInternalType&gt;
+  : Copy_Traits&lt;Args...&gt;
+{};
+</code></pre>
+<p><strong>设计模式</strong></p>
+<p>上述这是一个模板偏特化（template partial specialization）的写法，让我详细解&gt;一下：</p>
+<p>这种写法是C++模板编程中常见的模式，用于处理不同类型的模板参数。让我们看看这里涉及&gt;两个声明：</p>
+<pre><code class="language-cpp">// 主模板声明（通用模板）
+template &lt;class... Args&gt;
+struct Copy_Atom;
+
+// 偏特化版本1：处理CopyOperation, CopyInternalType参数
+template &lt;class CopyOperation, class CopyInternalType&gt;
+struct Copy_Atom&lt;CopyOperation, CopyInternalType&gt; 
+  : Copy_Atom&lt;Copy_Traits&lt;CopyOperation&gt;, CopyInternalType&gt;
+{};
+
+// 偏特化版本2：处理Copy_Traits&lt;Args...&gt;, CopyInternalType参数
+template &lt;class... Args, class CopyInternalType&gt;
+struct Copy_Atom&lt;Copy_Traits&lt;Args...&gt;, CopyInternalType&gt;
+  : Copy_Traits&lt;Args...&gt;
+{
+  // 实际的实现...
+};
+</code></pre>
+<p>当用户这样使用时：</p>
+<pre><code class="language-cpp">Copy_Atom&lt;SomeCopyOperation, float&gt; my_copy_atom;
+</code></pre>
+<p>编译器会匹配到第一个偏特化版本，它会继承自：</p>
+<pre><code class="language-cpp">Copy_Atom&lt;Copy_Traits&lt;SomeCopyOperation&gt;, float&gt;
+</code></pre>
+<p>然后这个又会匹配到第二个偏特化版本，最终继承自：</p>
+<pre><code class="language-cpp">Copy_Traits&lt;SomeCopyOperation&gt;
+</code></pre>
+<p>作用和优势</p>
+<ol>
+<li><strong>类型转换层</strong>：这种设计将具体的CopyOperation类型转换为Copy_Traits类型，&gt;现了类型适配。</li>
+<li><strong>统一接口</strong>：无论用户传入的是原始的CopyOperation还是已经特化的&gt; py_Traits，最终都会归一到基于Copy_Traits的实现。</li>
+<li><strong>扩展性</strong>：允许用户直接使用硬件操作类型（如SM80_CP_ASYNC_CACHEALWAYS）&gt;者已经定义好的Copy_Traits。</li>
+</ol>
+<p>例如：</p>
+<pre><code class="language-cpp">// 用户可以直接使用硬件操作类型
+Copy_Atom&lt;SM80_CP_ASYNC_CACHEALWAYS&lt;uint8_t, uint8_t&gt;, uint8_t&gt; &gt; om1;
+
+// 或者使用已经定义的Traits
+Copy_Atom&lt;Copy_Traits&lt;SM80_CP_ASYNC_CACHEALWAYS&lt;uint8_t, uint8_t&gt;&gt;, &gt; nt8_t&gt; atom2;
+</code></pre>
+<p>两种用法都会被正确处理并最终继承相应的Copy_Traits实现。</p>
+<p>这是C++模板元编程中常见的设计模式，用于构建灵活且类型安全的模板库。</p>
+<h3 id="2-tiledcopy">2. TiledCopy 模块</h3>
+<p>TiledCopy 将 CopyAtom 扩展到更大的数据块，支持多线程协作。</p>
+<p>API 特点：</p>
+<ul>
+<li><code>make_tiled_copy()</code>: 创建一个分块的 copy 操作</li>
+<li><code>get_slice()</code>: 返回 ThrCopy</li>
+<li>成员：</li>
+<li><code>AtomLayoutRef</code> 用于</li>
+</ul>
+<p><strong>TiledCopy</strong></p>
+<pre><code class="language-cpp">template &lt;class Copy_Atom,
+          class LayoutCopy_TV,  // (tid,vid) -&gt; coord   [Need not be 2D...]
+          class ShapeTiler_MN&gt;  // coord space
+struct TiledCopy : Copy_Atom
+{
+  // Layout information from the CopyAtom
+  using AtomThrID     = typename Copy_Atom::ThrID;        // thrid -&gt; thr_idx
+  using AtomLayoutSrc = typename Copy_Atom::ValLayoutSrc; // (thr,val) -&gt; offset
+  using AtomLayoutDst = typename Copy_Atom::ValLayoutDst; // (thr,val) -&gt; offset
+  using AtomLayoutRef = typename Copy_Atom::ValLayoutRef; // (thr,val) -&gt; offset
+
+  using AtomNumThr = decltype(size&lt;0&gt;(AtomLayoutRef{}));
+  using AtomNumVal = decltype(size&lt;1&gt;(AtomLayoutRef{}));
+
+  // Layout information for the TiledCopy
+  using Tiler_MN       = ShapeTiler_MN;
+  using TiledLayout_TV = LayoutCopy_TV;
+  using TiledNumThr    = decltype(size&lt;0&gt;(TiledLayout_TV{}));
+  using TiledNumVal    = decltype(size&lt;1&gt;(TiledLayout_TV{}));
+...
+}
+</code></pre>
+<p><strong>get_slice</strong></p>
+<pre><code class="language-cpp">  template &lt;class ThrIdx,
+            __CUTE_REQUIRES(is_integral&lt;ThrIdx&gt;::value)&gt;
+  CUTE_HOST_DEVICE static
+  auto
+  get_slice(ThrIdx const&amp; thr_idx)
+  {
+    return ThrCopy&lt;TiledCopy, ThrIdx&gt;(thr_idx);
+  }
+
+</code></pre>
+<h3 id="3-thrcopy">3. ThrCopy 模块</h3>
+<p>ThrCopy 表示单个线程视角下的 copy 操作。</p>
+<p>API 特点：</p>
+<ul>
+<li><code>partition_S()</code>: 分割源张量以获取线程级别的 layout</li>
+<li><code>partition_D()</code>: 分割目标张量以获取线程级别的 layout</li>
+<li><code>retile_S/D()</code>: 重新组织张量结构</li>
+</ul>
+<pre><code class="language-cpp">template &lt;class TiledCopy, class ThrIdx&gt;
+struct ThrCopy
+{
+  ThrIdx thr_idx_;
+
+  CUTE_HOST_DEVICE
+  ThrCopy(ThrIdx const&amp; thr_idx) : thr_idx_(thr_idx) {}
+
+  template &lt;class STensor&gt;
+  CUTE_HOST_DEVICE
+  auto
+  partition_S(STensor&amp;&amp; stensor) const {
+    //static_assert(sizeof(typename remove_cvref_t&lt;STensor&gt;::value_type) == sizeof(typename TiledCopy::ValType),
+    //              &quot;Expected ValType for tiling SrcTensor.&quot;);
+    auto thr_tensor = make_tensor(static_cast&lt;STensor&amp;&amp;&gt;(stensor).data(), TiledCopy::tidfrg_S(stensor.layout()));
+    return thr_tensor(thr_idx_, _, repeat&lt;rank_v&lt;STensor&gt;&gt;(_));
+  }
+
+  template &lt;class DTensor&gt;
+  CUTE_HOST_DEVICE
+  auto
+  partition_D(DTensor&amp;&amp; dtensor) const {
+    //static_assert(sizeof(typename remove_cvref_t&lt;DTensor&gt;::value_type) == sizeof(typename TiledCopy::ValType),
+    //              &quot;Expected ValType for tiling DstTensor.&quot;);
+    auto thr_tensor = make_tensor(static_cast&lt;DTensor&amp;&amp;&gt;(dtensor).data(), TiledCopy::tidfrg_D(dtensor.layout()));
+    return thr_tensor(thr_idx_, _, repeat&lt;rank_v&lt;DTensor&gt;&gt;(_));
+  }
+
+  template &lt;class STensor&gt;
+  CUTE_HOST_DEVICE static
+  auto
+  retile_S(STensor&amp;&amp; stensor) {
+    // static_assert(sizeof(typename remove_cvref_t&lt;STensor&gt;::value_type) == sizeof(typename TiledCopy::ValType),
+    //               &quot;Expected ValType for tiling SrcTensor.&quot;);
+    return make_tensor(static_cast&lt;STensor&amp;&amp;&gt;(stensor).data(), TiledCopy::retile(stensor.layout()));
+  }
+
+  template &lt;class DTensor&gt;
+  CUTE_HOST_DEVICE static
+  auto
+  retile_D(DTensor&amp;&amp; dtensor) {
+    // static_assert(sizeof(typename remove_cvref_t&lt;DTensor&gt;::value_type) == sizeof(typename TiledCopy::ValType),
+    //               &quot;Expected ValType for tiling DstTensor.&quot;);
+    return make_tensor(static_cast&lt;DTensor&amp;&amp;&gt;(dtensor).data(), TiledCopy::retile(dtensor.layout()));
+  }
+};
+</code></pre>
+<h2 id="_1">辅助函数</h2>
+<h3 id="1">1. 创建函数</h3>
+<ul>
+<li><code>make_tiled_copy()</code>: 创建分块 copy</li>
+<li><code>make_tiled_copy_A/B/C()</code>: 为矩阵乘法创建特定的 copy</li>
+<li><code>make_cotiled_copy()</code>: 基于偏移映射创建 copy</li>
+</ul>
+<h3 id="2">2. 执行函数</h3>
+<ul>
+<li><code>copy()</code>: 主要的 copy 接口</li>
+<li><code>copy_if()</code>: 带条件谓词的 copy</li>
+<li><code>copy_aligned()</code>: 对齐假设的 copy</li>
+</ul>
+<h2 id="_2">模块协同工作方式</h2>
+<pre><code class="language-cpp">// ... existing code ...
+template &lt;class... CopyArgs,
+class SrcEngine, class SrcLayout,
+class DstEngine, class DstLayout&gt;
+CUTE_HOST_DEVICE
+void
+copy(Copy_Atom&lt;CopyArgs...&gt;       const&amp; copy_atom,
+Tensor&lt;SrcEngine, SrcLayout&gt; const&amp; src,       // (V,Rest...)
+Tensor&lt;DstEngine, DstLayout&gt;      &amp; dst)       // (V,Rest...)
+{
+    static_assert(SrcLayout::rank == DstLayout::rank, &quot;CopyAtom rank-mismatch.&quot;);
+
+    if constexpr (SrcLayout::rank == 1) {   // Dispatch the copy
+        copy_atom.call(src, dst);
+    } else {                                // Loop over all but the first mode
+        constexpr int R = SrcLayout::rank;
+        Tensor src_v = group_modes&lt;1,R&gt;(src);
+        Tensor dst_v = group_modes&lt;1,R&gt;(dst);
+
+        if constexpr (is_static&lt;decltype(shape(src_v))&gt;::value &amp;&amp; is_static&lt;decltype(shape(dst_v))&gt;::value) {
+            CUTE_STATIC_ASSERT_V(size&lt;1&gt;(src_v) == size&lt;1&gt;(dst_v));
+
+            // AutoFilter on the Rest-mode
+            auto dst_null = nullspace(layout&lt;1&gt;(dst_v));
+
+            Tensor dst_n = zipped_divide(dst_v, make_tile(shape&lt;0&gt;(dst_v), dst_null));  // ((V, NLL), (_1, Rest))
+            Tensor src_n = zipped_divide(src_v, make_tile(shape&lt;0&gt;(src_v), dst_null));  // ((V, NLL), (_1, Rest))
+
+            CUTE_STATIC_ASSERT_V(size&lt;1&gt;(src_n) == size&lt;1&gt;(dst_n));
+            CUTE_STATIC_ASSERT_V((cosize&lt;0,1&gt;(dst_n.layout()) == Int&lt;1&gt;{}), &quot;Nullspace definition error&quot;);
+            CUTE_STATIC_ASSERT_V((cosize&lt;0,1&gt;(src_n.layout()) == Int&lt;1&gt;{}), &quot;Error: Ambiguous scatter detected in copy&quot;);
+            CUTE_STATIC_ASSERT_V((size&lt;1,0&gt;(dst_n) == Int&lt;1&gt;{}));
+            CUTE_STATIC_ASSERT_V((size&lt;1,0&gt;(src_n) == Int&lt;1&gt;{}));
+
+            Tensor dst_c = dst_n(make_coord(_,Int&lt;0&gt;{}),make_coord(Int&lt;0&gt;{},_));        // (V, Rest)
+            Tensor src_c = src_n(make_coord(_,Int&lt;0&gt;{}),make_coord(Int&lt;0&gt;{},_));        // (V, Rest)
+
+            CUTE_STATIC_ASSERT_V( size&lt;1&gt;(src_c) ==  size&lt;1&gt;(dst_c));
+            CUTE_STATIC_ASSERT_V(shape&lt;0&gt;(dst_c) == shape&lt;0&gt;(dst));
+            CUTE_STATIC_ASSERT_V(shape&lt;0&gt;(src_c) == shape&lt;0&gt;(src));
+
+            CUTE_UNROLL
+            for (int i = 0; i &lt; size&lt;1&gt;(dst_c); ++i) {
+            copy_atom.call(src_c(_,i), dst_c(_,i));
+        }
+        } else {
+            CUTE_UNROLL
+            for (int i = 0; i &lt; size&lt;1&gt;(dst_v); ++i) {
+            copy_atom.call(src_v(_,i), dst_v(_,i));
+        }
+        }
+        }
+        }
+            // ... existing code ...
+</code></pre>
+<pre><code class="language-cpp">// ... existing code ...
+template &lt;class SEngine, class SLayout,
+class DEngine, class DLayout&gt;
+CUTE_HOST_DEVICE
+void
+call(Tensor&lt;SEngine,SLayout&gt; const&amp; src,
+Tensor&lt;DEngine,DLayout&gt;      &amp; dst) const
+{
+    static_assert(SLayout::rank == 1, &quot;Expected rank-1 src tensor&quot;);
+    static_assert(DLayout::rank == 1, &quot;Expected rank-1 dst tensor&quot;);
+
+    if constexpr (is_constant&lt;NumValSrc, decltype(size(src))&gt;::value ||
+        is_constant&lt;NumValDst, decltype(size(dst))&gt;::value) {
+        // Dispatch to unpack to execute instruction
+        return copy_unpack(static_cast&lt;Traits const&amp;&gt;(*this), src, dst);
+    } else if constexpr (is_tuple&lt;decltype(shape(src))&gt;::value &amp;&amp;
+        is_tuple&lt;decltype(shape(dst))&gt;::value) {
+        // If the size of the src/dst doesn't match the instruction,
+        //   recurse this rank-1 layout by peeling off the mode
+        //   ((A,B,C,...)) -&gt; (A,B,C,...)
+        return copy(*this, tensor&lt;0&gt;(src), tensor&lt;0&gt;(dst));
+    } else {
+        static_assert(dependent_false&lt;SEngine&gt;,
+                      &quot;CopyAtom: Src/Dst partitioning does not match the instruction requirement.&quot;);
+    }
+}
+// ... existing code ...
+</code></pre>
+<h2 id="_3">工作流程</h2>
+<ol>
+<li><strong>CopyAtom 层</strong>: 定义基本的 copy 操作单元，包括线程布局和数据布局</li>
+<li><strong>TiledCopy 层</strong>: 将 CopyAtom 扩展到更大的数据块，支持多线程协作</li>
+<li><strong>ThrCopy 层</strong>: 为每个线程提供特定的 copy 视图</li>
+<li><strong>执行层</strong>: 通过 <a href="file:///home/luyao/workspace/cutlass/cutlass-4.0.0/python/CuTeDSL/cutlass/cute/core.py#L5230-L5267">copy()</a> 或 <code>copy_if()</code> 函数实际执行 copy 操作</li>
+</ol>
+<p>这些模块通过模板特化和递归调用协同工作，形成了一个灵活且高效的 copy 抽象，可以适应从简单寄存器操作到复杂张量操作的各种场景。</p>
+<p>整个系统通过 traits 模式实现，允许为不同的硬件架构和 copy 操作类型提供专门的实现，同时保持统一的接口。这种设计使得用户可以用相同的 API 在不同的硬件上执行 copy 操作，而底层实现会根据具体的硬件和数据类型自动选择最优的执行路径。</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../../.." class="btn btn-neutral float-left" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../draft_tiledCopy/" class="btn btn-neutral float-right" title="draft">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../../.." style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../draft_tiledCopy/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>draft - CUTLASS Notes</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "draft";
+        var mkdocs_page_input_path = "design/cute/draft_tiledCopy.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> CUTLASS Notes
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Design</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" >cute</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../copy/">copy</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">draft</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#1-copy_atom">1. Copy_Atom</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2-tiledcopy">2. TiledCopy</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#3-thrcopy">3. ThrCopy</a>
+    </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">CUTLASS Notes</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Design</li>
+          <li class="breadcrumb-item">cute</li>
+      <li class="breadcrumb-item active">draft</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <p>我将为您整理 <a href="file:///home/luyao/workspace/cutlass/cutlass-4.0.0/include/cute/atom/copy_atom.hpp">copy_atom.hpp</a> 源码中的所有类、接口和成员变量，并解释其实现、作用、使用场景和使用方法。</p>
+<h2 id="_1">主要类和结构体</h2>
+<h3 id="1-copy_atom">1. Copy_Atom</h3>
+<p>这是表示单个复制操作的基本原子类。</p>
+<p><strong>模板参数：</strong>
+- <code>CopyOperation</code>: 复制操作类型
+- <code>CopyInternalType</code>: 复制的数据类型</p>
+<p><strong>核心成员：</strong>
+- <code>ThrID</code>: 线程ID布局
+- <code>BitLayoutSrc/Dst/Ref</code>: 源、目标和参考的位布局
+- <code>ValLayoutSrc/Dst/Ref</code>: 源、目标和参考的值布局
+- <code>ValType</code>: 值类型</p>
+<p><strong>作用：</strong>
+- 表示单个复制指令的封装
+- 定义复制操作的线程布局和数据布局</p>
+<p><strong>使用场景：</strong>
+- 当需要执行单个复制操作时
+- 作为构建更复杂复制操作的基础</p>
+<p><strong>使用方法：</strong></p>
+<pre><code class="language-cpp">Copy_Atom&lt;SM75_U32x4_LDSM_N, float&gt; copy_atom;
+</code></pre>
+<h3 id="2-tiledcopy">2. TiledCopy</h3>
+<p>这是一个复制操作的平铺封装，由多个 Copy_Atom 组成。</p>
+<p><strong>模板参数：</strong>
+- <code>Copy_Atom</code>: 基础复制原子
+- <code>LayoutCopy_TV</code>: (线程ID, 值ID) 到坐标的映射布局
+- <code>ShapeTiler_MN</code>: 坐标空间形状</p>
+<p><strong>核心成员：</strong>
+- <code>AtomThrID</code>: 原子线程ID布局
+- <code>AtomLayoutSrc/Dst/Ref</code>: 原子源、目标和参考布局
+- <code>Tiler_MN</code>: 平铺形状
+- <code>TiledLayout_TV</code>: 平铺的(线程ID, 值ID)布局</p>
+<p><strong>作用：</strong>
+- 将复制操作扩展到更大的数据块
+- 管理多个线程如何协同完成复制操作</p>
+<p><strong>使用场景：</strong>
+- 当需要复制较大的数据块时
+- 在GEMM等操作中管理数据移动</p>
+<p><strong>使用方法：</strong></p>
+<pre><code class="language-cpp">TiledCopy copy = make_tiled_copy(Copy_Atom&lt;SM75_U32x4_LDSM_N, float&gt;{}, 
+                                 Layout&lt;Shape&lt;_32,_8&gt;,Stride&lt;_8,_1&gt;&gt;{}, 
+                                 Layout&lt;Shape&lt;_1,_1&gt;&gt;{});
+</code></pre>
+<h3 id="3-thrcopy">3. ThrCopy</h3>
+<p>表示特定线程的复制操作视图。</p>
+<p><strong>模板参数：</strong>
+- <a href="file:///home/luyao/workspace/cutlass/cutlass-4.0.0/include/cute/atom/copy_atom.hpp#L199-L216">TiledCopy</a>: 平铺复制操作
+- <code>ThrIdx</code>: 线程索引类型</p>
+<p><strong>核心成员：</strong>
+- <code>thr_idx_</code>: 线程索引</p>
+<p><strong>作用：</strong>
+- 为特定线程提供复制操作的视图
+- 分割整体复制操作为线程级别的操作</p>
+<p><strong>使用场景：</strong>
+- 在每个线程中获取其负责的数据部分
+- 实现线程间的数据分区</p>
+<p><strong>使用方法：</strong></p>
+<pre><code class="language-cpp">auto thr_copy = tiled_copy.get_slice(threadIdx.x);
+Tensor sA = thr_copy.partition_S(gA);  // 分割源张量
+Tensor sB = thr_copy.partition_D(gB);  // 分割目标张量
+</code></pre>
+<h2 id="_2">主要函数接口</h2>
+<h3 id="1-make_tiled_copy_impl">1. make_tiled_copy_impl</h3>
+<p>创建平铺复制操作的实现函数。</p>
+<p><strong>参数：</strong>
+- <code>copy_atom</code>: 复制原子
+- <a href="file:///home/luyao/workspace/cutlass/cutlass-4.0.0/python/pycute/layout.py#L0-L0">layout</a>: 布局信息
+- <code>tiler</code>: 平铺器</p>
+<p><strong>作用：</strong>
+- 根据给定参数创建 TiledCopy 实例</p>
+<h3 id="2-make_tiled_copy">2. make_tiled_copy</h3>
+<p>创建平铺复制操作的主要接口。</p>
+<p><strong>参数：</strong>
+- <code>copy_atom</code>: 复制原子
+- <code>thr_layout</code>: 线程布局
+- <code>val_layout</code>: 值布局</p>
+<p><strong>作用：</strong>
+- 根据线程和值布局创建平铺复制操作</p>
+<p><strong>使用方法：</strong></p>
+<pre><code class="language-cpp">auto tiled_copy = make_tiled_copy(
+    Copy_Atom&lt;UniversalCopy&lt;T&gt;, T&gt;{},
+    Layout&lt;Shape&lt;_32,_8&gt;,Stride&lt;_8,_1&gt;&gt;{},  // 线程布局
+    Layout&lt;Shape&lt;_1,_1&gt;&gt;{}                  // 值布局
+);
+</code></pre>
+<h3 id="3-make_tiled_copy_abc">3. make_tiled_copy_A/B/C</h3>
+<p>为矩阵乘法操作创建特定的复制操作。</p>
+<p><strong>作用：</strong>
+- 创建与矩阵乘法A/B/C矩阵适配的复制操作</p>
+<p><strong>使用方法：</strong></p>
+<pre><code class="language-cpp">auto copyA = make_tiled_copy_A(Copy_Atom&lt;UniversalCopy&lt;TA&gt;, TA&gt;{}, tiled_mma);
+auto copyB = make_tiled_copy_B(Copy_Atom&lt;UniversalCopy&lt;TB&gt;, TB&gt;{}, tiled_mma);
+auto copyC = make_tiled_copy_C(Copy_Atom&lt;UniversalCopy&lt;TC&gt;, TC&gt;{}, tiled_mma);
+</code></pre>
+<h3 id="4-make_tiled_copy_sd">4. make_tiled_copy_S/D</h3>
+<p>创建与源或目标布局匹配的复制操作。</p>
+<p><strong>作用：</strong>
+- 创建与现有复制操作的源或目标布局匹配的新复制操作</p>
+<p><strong>使用方法：</strong></p>
+<pre><code class="language-cpp">auto copyS = make_tiled_copy_S(Copy_Atom&lt;CopyOp, T&gt;{}, existing_tiled_copy);
+auto copyD = make_tiled_copy_D(Copy_Atom&lt;CopyOp, T&gt;{}, existing_tiled_copy);
+</code></pre>
+<h3 id="5-make_cotiled_copy">5. make_cotiled_copy</h3>
+<p>从线程和值的偏移映射创建平铺复制操作。</p>
+<p><strong>作用：</strong>
+- 当线程和值不关心具体坐标，而更关心向量宽度和偏移时使用</p>
+<h2 id="_3">核心实现机制</h2>
+<h3 id="_4">布局转换系统</h3>
+<p>CUTE 使用布局(layout)系统来管理内存访问模式：</p>
+<ol>
+<li><strong>ThrID</strong>: 线程ID到线程索引的映射</li>
+<li><strong>SrcLayout/DstLayout</strong>: 源/目标的(线程, 值)到比特的映射</li>
+<li><strong>RefLayout</strong>: 参考的(线程, 值)到比特的映射</li>
+</ol>
+<p>这些布局通过 <a href="file:///home/luyao/workspace/cutlass/cutlass-4.0.0/python/pycute/layout.py#L259-L282">right_inverse</a> 和 <code>compose</code> 等操作进行转换，构建从参考布局到源布局和目标布局的映射。</p>
+<h3 id="_5">分区机制</h3>
+<p>通过 <a href="file:///home/luyao/workspace/cutlass/cutlass-4.0.0/python/CuTeDSL/cutlass/cute/core.py#L4787-L4791">partition_S</a> 和 <a href="file:///home/luyao/workspace/cutlass/cutlass-4.0.0/python/CuTeDSL/cutlass/cute/core.py#L4794-L4798">partition_D</a> 方法，将整体张量分区为线程级别的子张量：</p>
+<pre><code class="language-cpp">auto thr_copy = tiled_copy.get_slice(threadIdx.x);
+Tensor sA = thr_copy.partition_S(gA);  // 源张量分区
+Tensor sB = thr_copy.partition_D(gB);  // 目标张量分区
+</code></pre>
+<h3 id="_6">执行机制</h3>
+<p>通过 <a href="file:///home/luyao/workspace/cutlass/cutlass-4.0.0/python/CuTeDSL/cutlass/cute/core.py#L5230-L5267">copy</a> 函数执行实际的复制操作：</p>
+<pre><code class="language-cpp">copy(tiled_copy, sA, sB);  // 使用平铺复制操作复制数据
+</code></pre>
+<h2 id="_7">使用示例</h2>
+<pre><code class="language-cpp">// 1. 创建复制原子
+using CopyAtom = Copy_Atom&lt;SM75_U32x4_LDSM_N, float&gt;;
+
+// 2. 创建平铺复制操作
+auto tiled_copy = make_tiled_copy(
+    CopyAtom{},
+    Layout&lt;Shape&lt;_32,_8&gt;,Stride&lt;_8,_1&gt;&gt;{},  // 32x8线程布局
+    Layout&lt;Shape&lt;_1,_1&gt;&gt;{}                  // 1x1值布局
+);
+
+// 3. 获取线程视图
+auto thr_copy = tiled_copy.get_slice(threadIdx.x);
+
+// 4. 分区张量
+Tensor sA = thr_copy.partition_S(gA);  // 分区源张量
+Tensor sB = thr_copy.partition_D(gB);  // 分区目标张量
+
+// 5. 执行复制
+copy(tiled_copy, sA, sB);
+</code></pre>
+<h2 id="_8">总结</h2>
+<p>CUTE 的复制系统通过 Copy_Atom、TiledCopy 和 ThrCopy 三个层次提供了灵活而强大的复制操作抽象：</p>
+<ol>
+<li><strong>Copy_Atom</strong>: 表示单个复制指令</li>
+<li><strong>TiledCopy</strong>: 将复制操作扩展到更大的数据块</li>
+<li><strong>ThrCopy</strong>: 为每个线程提供其视图</li>
+</ol>
+<p>这种设计使得 CUDA 内核可以高效地管理复杂的数据移动模式，特别适用于 GEMM 等需要大量数据搬运的计算操作。</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../copy/" class="btn btn-neutral float-left" title="copy"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../copy/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
