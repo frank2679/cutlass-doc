@@ -6,3 +6,4 @@ nav:
   - Design:
     - cute: 
       - copy: design/cute/copy.md
+        - tiledCopy: design/cute/draft_tiledCopy.md

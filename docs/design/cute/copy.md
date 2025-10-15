@@ -11,14 +11,15 @@ CopyAtom 是 copy 操作的基本构建单元，它封装了底层硬件指令�
 API 特点：
 
 + `Copy_Atom<CopyOperation, CopyInternalType>`: 定义一个 copy 原子操作
-+ `call()`: 执行实际的 copy 操作
-+ `with()`: 为 copy 操作添加额外参数
+  + `call()`: 执行实际的 copy 操作
+  + `with()`: 为 copy 操作添加额外参数
 + Copy_Traits: 定义 copy 操作的特征，包括线程布局和数据布局。
-    - `Copy_Traits`: 定义 copy 操作的特征
-    - `copy_unpack()`: 解包并执行 copy 操作
+  + `Copy_Traits`: 定义 copy 操作的特征
+  + `copy_unpack()`: 解包并执行 copy 操作
 + CopyOperation 定义了底层硬件 copy 操作和基本的 copy 策略。
 
 
+**CopyOperation**
 
 ```cpp
 // 最基本的 copy 操作
@@ -30,81 +31,127 @@ struct UniversalCopy {
 };
 ```
 
+**Copy_Traits**
 
 
 ```cpp
-template <class... Args, class CopyInternalType>
-struct Copy_Atom<Copy_Traits<Args...>, CopyInternalType>
-  : Copy_Traits<Args...>
-{};
-```
+/**
+ * concept Copy_Traits
+ * {
+ *   using ThrID     =    // Logical thread id (tid) -> tidx
+ *
+ *   using SrcLayout =    // (Logical src thread id (tid), Logical src value id (vid)) -> bit
+ *   using DstLayout =    // (Logical dst thread id (tid), Logical dst value id (vid)) -> bit
+ *   using RefLayout =    // (Logical ref thread id (tid), Logical ref value id (vid)) -> bit
+ * };
+ *
+ * The abstract bit ordering of the Copy_Traits (the codomain of SrcLayout, DstLayout, and RefLayout)
+ * is arbitrary and only used to construct maps
+ *   (ref-tid,ref-vid) -> (src-tid,src-vid)
+ *   (ref-tid,ref-vid) -> (dst-tid,dst-vid)
+ * in TiledCopy. The Layout_TV in TiledCopy is in accordance with the RefLayout of a Traits, then mapped to
+ * the Src or Dst (tid,vid) representation on demand.
+ *
+ */
 
-
-
-#### 设计模式
-上述这是一个模板偏特化（template partial specialization）的写法，让我详细解释一下：
-
-这种写法是C++模板编程中常见的模式，用于处理不同类型的模板参数。让我们看看这里涉及的两个声明：
-
-```cpp
-// 主模板声明（通用模板）
-template <class... Args>
-struct Copy_Atom;
-
-// 偏特化版本1：处理CopyOperation, CopyInternalType参数
-template <class CopyOperation, class CopyInternalType>
-struct Copy_Atom<CopyOperation, CopyInternalType> 
-  : Copy_Atom<Copy_Traits<CopyOperation>, CopyInternalType>
-{};
-
-// 偏特化版本2：处理Copy_Traits<Args...>, CopyInternalType参数
-template <class... Args, class CopyInternalType>
-struct Copy_Atom<Copy_Traits<Args...>, CopyInternalType>
-  : Copy_Traits<Args...>
+template <class CopyOperation, class... CopyOpArgs>
+struct Copy_Traits
 {
-  // 实际的实现...
+  static_assert(dependent_false<CopyOperation>, "Copy_Traits not implemented for this CopyOperation.");
+};
+
+template <class S, class D>
+struct Copy_Traits<UniversalCopy<S,D>>
+{
+  // Logical thread id to thread idx (one-thread)
+  using ThrID = Layout<_1>;
+
+  // Map from (src-thr,src-val) to bit
+  using SrcLayout = Layout<Shape<_1,Int<sizeof_bits<S>::value>>>;
+  // Map from (dst-thr,dst-val) to bit
+  using DstLayout = Layout<Shape<_1,Int<sizeof_bits<D>::value>>>;
+
+  // Reference map from (thr,val) to bit
+  using RefLayout = SrcLayout;
 };
 ```
 
-当用户这样使用时：
+
+**Copy_Atom**
 
 ```cpp
-Copy_Atom<SomeCopyOperation, float> my_copy_atom;
-```
-
-编译器会匹配到第一个偏特化版本，它会继承自：
-
-```cpp
-Copy_Atom<Copy_Traits<SomeCopyOperation>, float>
-```
-
-然后这个又会匹配到第二个偏特化版本，最终继承自：
-
-```cpp
-Copy_Traits<SomeCopyOperation>
+template <class... Args, class CopyInternalType>
+struct Copy_Atom<Copy_Traits<Args...>, CopyInternalType>
+  : Copy_Traits<Args...>
+{};
 ```
 
 
-
-作用和优势
-
-1. **类型转换层**：这种设计将具体的CopyOperation类型转换为Copy_Traits类型，实现了类型适配。
-2. **统一接口**：无论用户传入的是原始的CopyOperation还是已经特化的Copy_Traits，最终都会归一到基于Copy_Traits的实现。
-3. **扩展性**：允许用户直接使用硬件操作类型（如SM80_CP_ASYNC_CACHEALWAYS）或者已经定义好的Copy_Traits。
-
-例如：
-
-```cpp
-// 用户可以直接使用硬件操作类型
-Copy_Atom<SM80_CP_ASYNC_CACHEALWAYS<uint8_t, uint8_t>, uint8_t> atom1;
-
-// 或者使用已经定义的Traits
-Copy_Atom<Copy_Traits<SM80_CP_ASYNC_CACHEALWAYS<uint8_t, uint8_t>>, uint8_t> atom2;
-```
-
-两种用法都会被正确处理并最终继承相应的Copy_Traits实现。
-
-这是C++模板元编程中常见的设计模式，用于构建灵活且类型安全的模板库。
+> **设计模式**
+> 
+> 上述这是一个模板偏特化（template partial specialization）的写法，让我详细解> 释一下：
+> 
+> 这种写法是C++模板编程中常见的模式，用于处理不同类型的模板参数。让我们看看这里涉及> 的两个声明：
+> 
+> ```cpp
+> // 主模板声明（通用模板）
+> template <class... Args>
+> struct Copy_Atom;
+> 
+> // 偏特化版本1：处理CopyOperation, CopyInternalType参数
+> template <class CopyOperation, class CopyInternalType>
+> struct Copy_Atom<CopyOperation, CopyInternalType> 
+>   : Copy_Atom<Copy_Traits<CopyOperation>, CopyInternalType>
+> {};
+> 
+> // 偏特化版本2：处理Copy_Traits<Args...>, CopyInternalType参数
+> template <class... Args, class CopyInternalType>
+> struct Copy_Atom<Copy_Traits<Args...>, CopyInternalType>
+>   : Copy_Traits<Args...>
+> {
+>   // 实际的实现...
+> };
+> ```
+> 
+> 当用户这样使用时：
+> 
+> ```cpp
+> Copy_Atom<SomeCopyOperation, float> my_copy_atom;
+> ```
+> 
+> 编译器会匹配到第一个偏特化版本，它会继承自：
+> 
+> ```cpp
+> Copy_Atom<Copy_Traits<SomeCopyOperation>, float>
+> ```
+> 
+> 然后这个又会匹配到第二个偏特化版本，最终继承自：
+> 
+> ```cpp
+> Copy_Traits<SomeCopyOperation>
+> ```
+> 
+> 
+> 
+> 作用和优势
+> 
+> 1. **类型转换层**：这种设计将具体的CopyOperation类型转换为Copy_Traits类型，> 实现了类型适配。
+> 2. **统一接口**：无论用户传入的是原始的CopyOperation还是已经特化的> Copy_Traits，最终都会归一到基于Copy_Traits的实现。
+> 3. **扩展性**：允许用户直接使用硬件操作类型（如SM80_CP_ASYNC_CACHEALWAYS）> 或者已经定义好的Copy_Traits。
+> 
+> 例如：
+> 
+> ```cpp
+> // 用户可以直接使用硬件操作类型
+> Copy_Atom<SM80_CP_ASYNC_CACHEALWAYS<uint8_t, uint8_t>, uint8_t> > atom1;
+> 
+> // 或者使用已经定义的Traits
+> Copy_Atom<Copy_Traits<SM80_CP_ASYNC_CACHEALWAYS<uint8_t, uint8_t>>, > uint8_t> atom2;
+> ```
+> 
+> 两种用法都会被正确处理并最终继承相应的Copy_Traits实现。
+> 
+> 这是C++模板元编程中常见的设计模式，用于构建灵活且类型安全的模板库。
 
 ### 2. TiledCopy 模块
 TiledCopy 将 CopyAtom 扩展到更大的数据块，支持多线程协作。
@@ -112,10 +159,11 @@ TiledCopy 将 CopyAtom 扩展到更大的数据块，支持多线程协作。
 API 特点：
 
 + `make_tiled_copy()`: 创建一个分块的 copy 操作
-+ `get_slice()`: 获取特定线程的 copy 视图
-+ `partition_S/D()`: 为源/目标张量创建线程特定的分区
++ `get_slice()`: 返回 ThrCopy
++ 成员：
+  + `AtomLayoutRef` 用于
 
-
+**TiledCopy**
 
 ```cpp
 template <class Copy_Atom,
@@ -141,7 +189,7 @@ struct TiledCopy : Copy_Atom
 }
 ```
 
-
+**get_slice**
 
 ```cpp
   template <class ThrIdx,
@@ -162,13 +210,62 @@ ThrCopy 表示单个线程视角下的 copy 操作。
 
 API 特点：
 
-+ `partition_S()`: 分割源张量
-+ `partition_D()`: 分割目标张量
++ `partition_S()`: 分割源张量以获取线程级别的 layout
++ `partition_D()`: 分割目标张量以获取线程级别的 layout
 + `retile_S/D()`: 重新组织张量结构
+
+```cpp
+template <class TiledCopy, class ThrIdx>
+struct ThrCopy
+{
+  ThrIdx thr_idx_;
+
+  CUTE_HOST_DEVICE
+  ThrCopy(ThrIdx const& thr_idx) : thr_idx_(thr_idx) {}
+
+  template <class STensor>
+  CUTE_HOST_DEVICE
+  auto
+  partition_S(STensor&& stensor) const {
+    //static_assert(sizeof(typename remove_cvref_t<STensor>::value_type) == sizeof(typename TiledCopy::ValType),
+    //              "Expected ValType for tiling SrcTensor.");
+    auto thr_tensor = make_tensor(static_cast<STensor&&>(stensor).data(), TiledCopy::tidfrg_S(stensor.layout()));
+    return thr_tensor(thr_idx_, _, repeat<rank_v<STensor>>(_));
+  }
+
+  template <class DTensor>
+  CUTE_HOST_DEVICE
+  auto
+  partition_D(DTensor&& dtensor) const {
+    //static_assert(sizeof(typename remove_cvref_t<DTensor>::value_type) == sizeof(typename TiledCopy::ValType),
+    //              "Expected ValType for tiling DstTensor.");
+    auto thr_tensor = make_tensor(static_cast<DTensor&&>(dtensor).data(), TiledCopy::tidfrg_D(dtensor.layout()));
+    return thr_tensor(thr_idx_, _, repeat<rank_v<DTensor>>(_));
+  }
+
+  template <class STensor>
+  CUTE_HOST_DEVICE static
+  auto
+  retile_S(STensor&& stensor) {
+    // static_assert(sizeof(typename remove_cvref_t<STensor>::value_type) == sizeof(typename TiledCopy::ValType),
+    //               "Expected ValType for tiling SrcTensor.");
+    return make_tensor(static_cast<STensor&&>(stensor).data(), TiledCopy::retile(stensor.layout()));
+  }
+
+  template <class DTensor>
+  CUTE_HOST_DEVICE static
+  auto
+  retile_D(DTensor&& dtensor) {
+    // static_assert(sizeof(typename remove_cvref_t<DTensor>::value_type) == sizeof(typename TiledCopy::ValType),
+    //               "Expected ValType for tiling DstTensor.");
+    return make_tensor(static_cast<DTensor&&>(dtensor).data(), TiledCopy::retile(dtensor.layout()));
+  }
+};
+```
 
 ## 辅助函数
 ### 1. 创建函数
-+ [make_tiled_copy()](file:///home/luyao/workspace/cutlass/cutlass-4.0.0/python/CuTeDSL/cutlass/cute/core.py#L4906-L4938): 创建分块 copy
++ `make_tiled_copy()`: 创建分块 copy
 + `make_tiled_copy_A/B/C()`: 为矩阵乘法创建特定的 copy
 + `make_cotiled_copy()`: 基于偏移映射创建 copy
 
