@@ -1,7 +1,8 @@
-site_name: My Docs
+site_name: CUTLASS Notes
 theme:
   name: readthedocs
 nav:
   - Home: index.md
   - Design:
-    - cute: design/cute.md
+    - cute: 
+      - copy: design/cute/copy.md
