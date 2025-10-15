@@ -5,6 +5,3 @@ nav:
   - Home: index.md
   - Design:
     - cute: design/cute.md
-
-# GitHub Pages configuration
-site_url: https://username.github.io/repository-name
