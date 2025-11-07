@@ -1,112 +1,82 @@
 {
   "main": {
-    "id": "91382bb12d77a46d",
+    "id": "dfcd7786b66951e6",
     "type": "split",
     "children": [
       {
-        "id": "fa15bdfa42d03deb",
+        "id": "6b686f627a3623fb",
         "type": "tabs",
         "children": [
           {
-            "id": "ad3be4879c64c581",
+            "id": "6948ece3ff8418b8",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "docs/design/cute/copy/tma copy/TmaCopy.md",
+                "file": "README.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "TmaCopy"
+              "title": "README"
             }
           },
           {
-            "id": "2ab05b83ece93f16",
+            "id": "93102a2fea0b4695",
             "type": "leaf",
+            "pinned": true,
             "state": {
-              "type": "markdown",
+              "type": "terminal:terminal",
               "state": {
-                "file": "docs/design/设计模式/C++ 特性.md",
-                "mode": "source",
-                "source": false
+                "terminal:terminal": {
+                  "cwd": "/Users/joycezhao/workspace/cutlass-doc",
+                  "focus": false,
+                  "profile": {
+                    "args": [],
+                    "executable": "/bin/zsh",
+                    "name": "",
+                    "platforms": {
+                      "darwin": true
+                    },
+                    "pythonExecutable": "python3",
+                    "restoreHistory": false,
+                    "rightClickAction": "copyPaste",
+                    "successExitCodes": [
+                      "0",
+                      "SIGINT",
+                      "SIGTERM"
+                    ],
+                    "terminalOptions": {
+                      "documentOverride": null
+                    },
+                    "type": "integrated",
+                    "useWin32Conhost": true
+                  },
+                  "serial": null
+                }
               },
-              "icon": "lucide-file",
-              "title": "C++ 特性"
-            }
-          },
-          {
-            "id": "db54aaa898e82d1f",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "docs/index.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "index"
-            }
-          },
-          {
-            "id": "74e92ad2ed0e3172",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "docs/design/cute/core/layout/right_inverse.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "right_inverse"
-            }
-          },
-          {
-            "id": "e54c615e1fac0b22",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "docs/design/cute/copy/tma copy/tma_partition.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "tma_partition"
-            }
-          },
-          {
-            "id": "0cf59b57763f3a80",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "docs/design/cute/copy/draft_RefLayout.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "draft_RefLayout"
+              "pinned": true,
+              "icon": "terminal",
+              "title": "终端：Gemini - cutlass-doc"
             }
           }
         ],
-        "currentTab": 2
+        "currentTab": 1,
+        "stacked": true
       }
     ],
     "direction": "vertical"
   },
   "left": {
-    "id": "1df949f83358c59a",
+    "id": "90404351730b3c5c",
     "type": "split",
     "children": [
       {
-        "id": "8ef174132bf89512",
+        "id": "a3b0b5e8207ec7f6",
         "type": "tabs",
         "children": [
           {
-            "id": "cf1a9da68d290905",
+            "id": "335341fe9278cdcd",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -119,12 +89,12 @@
             }
           },
           {
-            "id": "d0fc12e80ca13219",
+            "id": "9db484c367756255",
             "type": "leaf",
             "state": {
               "type": "search",
               "state": {
-                "query": "tile_to",
+                "query": "",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -136,7 +106,7 @@
             }
           },
           {
-            "id": "e478e1947fe66cca",
+            "id": "62f3f185c00f6c82",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
@@ -152,20 +122,19 @@
     "width": 300
   },
   "right": {
-    "id": "f908cb1ce2a8df50",
+    "id": "5ccb7b9faa9a8cbd",
     "type": "split",
     "children": [
       {
-        "id": "97e2d21cf135f2a1",
+        "id": "f5fe81fb4938338b",
         "type": "tabs",
         "children": [
           {
-            "id": "a33c97d08fd79f2f",
+            "id": "ef47fa2b3c1a557a",
             "type": "leaf",
             "state": {
               "type": "backlink",
               "state": {
-                "file": "docs/design/cute/copy/sample_sm90_tma_copy.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -175,25 +144,24 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for sample_sm90_tma_copy"
+              "title": "Backlinks"
             }
           },
           {
-            "id": "9e9664be18010237",
+            "id": "f23b9b24ac43e1e7",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "docs/design/cute/copy/sample_sm90_tma_copy.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from sample_sm90_tma_copy"
+              "title": "Outgoing links"
             }
           },
           {
-            "id": "c0d4d69202e1b2b2",
+            "id": "15a45a6bbcbbf6d9",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -208,26 +176,25 @@
             }
           },
           {
-            "id": "54e945eb1b6acfdb",
+            "id": "7e316059083f78d2",
             "type": "leaf",
             "state": {
               "type": "outline",
               "state": {
-                "file": "docs/index.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of index"
+              "title": "Outline"
             }
           }
-        ],
-        "currentTab": 3
+        ]
       }
     ],
     "direction": "horizontal",
-    "width": 242.5
+    "width": 300,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -237,47 +204,53 @@
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
       "command-palette:Open command palette": false,
-      "bases:Create new base": false
+      "bases:Create new base": false,
+      "terminal:Open terminal": false
     }
   },
-  "active": "db54aaa898e82d1f",
+  "active": "93102a2fea0b4695",
   "lastOpenFiles": [
-    "Untitled.md",
+    "venv/lib/python3.9/site-packages/mkdocs_material-9.6.23.dist-info/REQUESTED",
+    "venv/lib/python3.9/site-packages/mkdocs_material-9.6.23.dist-info/INSTALLER",
+    "venv/lib/python3.9/site-packages/mkdocs_material-9.6.23.dist-info/licenses/LICENSE",
+    "venv/lib/python3.9/site-packages/mkdocs_material-9.6.23.dist-info/entry_points.txt",
+    "venv/lib/python3.9/site-packages/mkdocs_material-9.6.23.dist-info/licenses",
+    "venv/lib/python3.9/site-packages/mkdocs_material-9.6.23.dist-info/METADATA",
+    "venv/lib/python3.9/site-packages/mkdocs_material-9.6.23.dist-info/RECORD",
+    "venv/lib/python3.9/site-packages/mkdocs_material-9.6.23.dist-info/WHEEL",
+    "venv/lib/python3.9/site-packages/mkdocs_material-9.6.23.dist-info",
+    "venv/lib/python3.9/site-packages/material/utilities/filter/config.py",
+    "venv/lib/python3.9/site-packages/material/utilities/filter/__init__.py",
+    "venv/lib/python3.9/site-packages/material/templates/assets/images/favicon.png",
+    "venv/lib/python3.9/site-packages/mkdocs/themes/readthedocs/css/fonts/fontawesome-webfont.svg",
+    "venv/lib/python3.9/site-packages/mkdocs/themes/mkdocs/img/grid.png",
+    "venv/lib/python3.9/site-packages/pymdown_extensions-10.16.1.dist-info/licenses/LICENSE.md",
+    "venv/lib/python3.9/site-packages/markdown-3.9.dist-info/licenses/LICENSE.md",
+    "venv/lib/python3.9/site-packages/mkdocs_get_deps-0.2.0.dist-info/licenses/LICENSE.md",
+    "venv/lib/python3.9/site-packages/backrefs-5.9.dist-info/licenses/LICENSE.md",
+    "venv/lib/python3.9/site-packages/idna-3.11.dist-info/licenses/LICENSE.md",
+    "venv/lib/python3.9/site-packages/mkdocs_material_extensions-1.3.1.dist-info/licenses/LICENSE.md",
+    "venv/lib/python3.9/site-packages/pip-25.3.dist-info/licenses/src/pip/_vendor/idna/LICENSE.md",
+    "venv/lib/python3.9/site-packages/pip/_vendor/idna/LICENSE.md",
+    "README.md",
     "docs/index.md",
-    "Untitled.base",
-    "docs/design/cute/examples/general mma.md",
-    "docs/design/cute/examples/CustomCopy.md",
-    "docs/design/cute/copy/copy_flow.canvas",
-    "docs/design/设计模式/CopyTraits 设计模式.md",
-    "docs/design/cute/copy/tma copy/TmaCopy.md",
-    "docs/design/cute/core/layout/right_inverse.md",
-    "Pasted image 20251031165916.png",
-    "docs/design/cute/examples/sample_sm90_tma_copy.md",
-    "docs/design/cute/examples/T chip impl.md",
-    "docs/design/cute/core/layout/tile_to_shape.md",
-    "docs/design/cute/copy/tma copy/make_tma_copy.md",
-    "docs/design/cute/core/layout/layout algebra.md",
-    "docs/design/cute/core/layout/group_modes.md",
-    "docs/design/cute/core/layout",
-    "docs/design/cute/copy/tma copy/tma_partition.md",
-    "docs/design/cute/core/size(Layout).md",
-    "docs/design/cute/core/size(tuple).md",
-    "docs/design/cute/core/tensor.md",
-    "docs/design/cute/copy/tma copy/make_tma_copy_tiled.md",
-    "docs/design/cute/copy/draft_tiledCopy.md",
-    "docs/design/cute/copy/tma copy/TmaDesc.md",
-    "docs/design/cute/copy/tma copy",
-    "docs/design/cute/copy/copy.md",
-    "docs/design/设计模式/C++ 特性.md",
-    "docs/design/cute/core/ArithTuple.md",
-    "docs/design/cute/copy/tma copy/gbasis 计算.md",
+    "docs/design/设计模式/LayoutRight{} 计算.md",
     "docs/design/设计模式/make_coord_tensor.md",
-    "docs/design/cute/examples",
+    "docs/design/设计模式/CopyTraits 设计模式.md",
+    "docs/design/设计模式/CopyAtom 设计模式.md",
+    "docs/design/设计模式/C++ 特性.md",
+    "docs/design/cute/gemm.md",
+    "docs/design/遗留问题.md",
+    "docs/design/设计模式/设计模式.md",
+    "docs/design/cute/mma/mma.md",
+    "docs/design/cute/examples/silu.md",
+    "docs/design/cute/examples/sample_sm90_tma_copy.md",
+    "docs/design/cute/examples/general mma.md",
+    "docs/design/cute/examples/T chip impl.md",
+    "docs/design/cute/examples/CustomCopy.md",
     "docs/design/cute/cute_module.canvas",
-    "docs/design/cute/core",
-    "docs/design/cute/mma",
-    "docs/design/cute/copy",
-    "docs/design/设计模式",
-    "Untitled.canvas"
+    "docs/design/cute/core/layout/group_modes.md",
+    "docs/design/cute/copy/copy_flow.canvas",
+    "Pasted image 20251031165916.png"
   ]
 }
