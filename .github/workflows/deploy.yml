@@ -19,7 +19,7 @@ jobs:
           python-version: '3.x'
       - name: Install dependencies
         run: |
-          pip install mkdocs
+          pip install mkdocs mkdocs-material
       - name: Deploy to GitHub Pages
         run: |
           git config --global user.name "github-actions[bot]"
