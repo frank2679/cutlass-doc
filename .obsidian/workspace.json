@@ -1,0 +1,283 @@
+{
+  "main": {
+    "id": "91382bb12d77a46d",
+    "type": "split",
+    "children": [
+      {
+        "id": "fa15bdfa42d03deb",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ad3be4879c64c581",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "docs/design/cute/copy/tma copy/TmaCopy.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "TmaCopy"
+            }
+          },
+          {
+            "id": "2ab05b83ece93f16",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "docs/design/设计模式/C++ 特性.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "C++ 特性"
+            }
+          },
+          {
+            "id": "db54aaa898e82d1f",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "docs/index.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "index"
+            }
+          },
+          {
+            "id": "74e92ad2ed0e3172",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "docs/design/cute/core/layout/right_inverse.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "right_inverse"
+            }
+          },
+          {
+            "id": "e54c615e1fac0b22",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "docs/design/cute/copy/tma copy/tma_partition.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "tma_partition"
+            }
+          },
+          {
+            "id": "0cf59b57763f3a80",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "docs/design/cute/copy/draft_RefLayout.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "draft_RefLayout"
+            }
+          }
+        ],
+        "currentTab": 2
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "1df949f83358c59a",
+    "type": "split",
+    "children": [
+      {
+        "id": "8ef174132bf89512",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "cf1a9da68d290905",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "d0fc12e80ca13219",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "tile_to",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "e478e1947fe66cca",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "f908cb1ce2a8df50",
+    "type": "split",
+    "children": [
+      {
+        "id": "97e2d21cf135f2a1",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a33c97d08fd79f2f",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "docs/design/cute/copy/sample_sm90_tma_copy.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for sample_sm90_tma_copy"
+            }
+          },
+          {
+            "id": "9e9664be18010237",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "docs/design/cute/copy/sample_sm90_tma_copy.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from sample_sm90_tma_copy"
+            }
+          },
+          {
+            "id": "c0d4d69202e1b2b2",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "54e945eb1b6acfdb",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "docs/index.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of index"
+            }
+          }
+        ],
+        "currentTab": 3
+      }
+    ],
+    "direction": "horizontal",
+    "width": 242.5
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "db54aaa898e82d1f",
+  "lastOpenFiles": [
+    "Untitled.md",
+    "docs/index.md",
+    "Untitled.base",
+    "docs/design/cute/examples/general mma.md",
+    "docs/design/cute/examples/CustomCopy.md",
+    "docs/design/cute/copy/copy_flow.canvas",
+    "docs/design/设计模式/CopyTraits 设计模式.md",
+    "docs/design/cute/copy/tma copy/TmaCopy.md",
+    "docs/design/cute/core/layout/right_inverse.md",
+    "Pasted image 20251031165916.png",
+    "docs/design/cute/examples/sample_sm90_tma_copy.md",
+    "docs/design/cute/examples/T chip impl.md",
+    "docs/design/cute/core/layout/tile_to_shape.md",
+    "docs/design/cute/copy/tma copy/make_tma_copy.md",
+    "docs/design/cute/core/layout/layout algebra.md",
+    "docs/design/cute/core/layout/group_modes.md",
+    "docs/design/cute/core/layout",
+    "docs/design/cute/copy/tma copy/tma_partition.md",
+    "docs/design/cute/core/size(Layout).md",
+    "docs/design/cute/core/size(tuple).md",
+    "docs/design/cute/core/tensor.md",
+    "docs/design/cute/copy/tma copy/make_tma_copy_tiled.md",
+    "docs/design/cute/copy/draft_tiledCopy.md",
+    "docs/design/cute/copy/tma copy/TmaDesc.md",
+    "docs/design/cute/copy/tma copy",
+    "docs/design/cute/copy/copy.md",
+    "docs/design/设计模式/C++ 特性.md",
+    "docs/design/cute/core/ArithTuple.md",
+    "docs/design/cute/copy/tma copy/gbasis 计算.md",
+    "docs/design/设计模式/make_coord_tensor.md",
+    "docs/design/cute/examples",
+    "docs/design/cute/cute_module.canvas",
+    "docs/design/cute/core",
+    "docs/design/cute/mma",
+    "docs/design/cute/copy",
+    "docs/design/设计模式",
+    "Untitled.canvas"
+  ]
+}

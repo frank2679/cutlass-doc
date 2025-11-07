@@ -1,5 +1,11 @@
 ## CUTE 
 下面内容简要说明 `cute::copy` 的抽象结构、模块组成以及它们如何协同工作。
+[[draft_tiledCopy]]
+[[TmaCopy]]
+
+[[copy_flow.canvas|copy_flow]]
+[[CopyPolicy]]
+
 
 ## Cute Copy 抽象概述
 Cute 的 copy 抽象提供了一个统一的接口来执行各种类型的内存拷贝操作，从简单的寄存器到寄存器拷贝到复杂的张量操作和硬件加速的异步拷贝。
@@ -32,8 +38,7 @@ struct UniversalCopy {
 ```
 
 **Copy_Traits**
-
-
+其实现使用的设计模式参考：[[CopyTraits 设计模式]]
 ```cpp
 /**
  * concept Copy_Traits
@@ -79,79 +84,25 @@ struct Copy_Traits<UniversalCopy<S,D>>
 
 **Copy_Atom**
 
-```cpp
-template <class... Args, class CopyInternalType>
-struct Copy_Atom<Copy_Traits<Args...>, CopyInternalType>
-  : Copy_Traits<Args...>
-{};
-```
-
-
-**设计模式**
-
-上述这是一个模板偏特化（template partial specialization）的写法，让我详细解>一下：
-
-这种写法是C++模板编程中常见的模式，用于处理不同类型的模板参数。让我们看看这里涉及>两个声明：
+其实现使用的设计模式参考： [[CopyAtom 设计模式]]
 
 ```cpp
-// 主模板声明（通用模板）
-template <class... Args>
-struct Copy_Atom;
-
-// 偏特化版本1：处理CopyOperation, CopyInternalType参数
-template <class CopyOperation, class CopyInternalType>
-struct Copy_Atom<CopyOperation, CopyInternalType> 
-  : Copy_Atom<Copy_Traits<CopyOperation>, CopyInternalType>
-{};
-
-// 偏特化版本2：处理Copy_Traits<Args...>, CopyInternalType参数
 template <class... Args, class CopyInternalType>
 struct Copy_Atom<Copy_Traits<Args...>, CopyInternalType>
   : Copy_Traits<Args...>
 {
-  // 实际的实现...
+// Additional Trait parameters/transformations
+template <class... TraitsArgs>
+CUTE_HOST_DEVICE
+auto
+with(TraitsArgs&&... args) const {
+	auto traits = Traits::with(static_cast<TraitsArgs&&>(args)...);
+	return Copy_Atom<decltype(traits), CopyInternalType>{traits};
+}
+
 };
 ```
 
-当用户这样使用时：
-
-```cpp
-Copy_Atom<SomeCopyOperation, float> my_copy_atom;
-```
-
-编译器会匹配到第一个偏特化版本，它会继承自：
-
-```cpp
-Copy_Atom<Copy_Traits<SomeCopyOperation>, float>
-```
-
-然后这个又会匹配到第二个偏特化版本，最终继承自：
-
-```cpp
-Copy_Traits<SomeCopyOperation>
-```
-
-
-
-作用和优势
-
-1. **类型转换层**：这种设计将具体的CopyOperation类型转换为Copy_Traits类型，>现了类型适配。
-2. **统一接口**：无论用户传入的是原始的CopyOperation还是已经特化的> py_Traits，最终都会归一到基于Copy_Traits的实现。
-3. **扩展性**：允许用户直接使用硬件操作类型（如SM80_CP_ASYNC_CACHEALWAYS）>者已经定义好的Copy_Traits。
-
-例如：
-
-```cpp
-// 用户可以直接使用硬件操作类型
-Copy_Atom<SM80_CP_ASYNC_CACHEALWAYS<uint8_t, uint8_t>, uint8_t> > om1;
-
-// 或者使用已经定义的Traits
-Copy_Atom<Copy_Traits<SM80_CP_ASYNC_CACHEALWAYS<uint8_t, uint8_t>>, > nt8_t> atom2;
-```
-
-两种用法都会被正确处理并最终继承相应的Copy_Traits实现。
-
-这是C++模板元编程中常见的设计模式，用于构建灵活且类型安全的模板库。
 
 ### 2. TiledCopy 模块
 TiledCopy 将 CopyAtom 扩展到更大的数据块，支持多线程协作。

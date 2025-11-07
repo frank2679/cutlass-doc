@@ -1,0 +1,25 @@
+{
+	"nodes":[
+		{"id":"433a18a84b11ac8b","type":"group","x":-220,"y":-40,"width":330,"height":500,"color":"3","label":"Execute Copy"},
+		{"id":"524eae17ead6fe78","type":"group","x":260,"y":-40,"width":360,"height":360,"color":"3","label":"Build CopyAtom"},
+		{"id":"b84fbf99ca3616f0","type":"group","x":-200,"y":20,"width":776,"height":100,"color":"4","label":"CopyAtom"},
+		{"id":"1078e5d6499952ba","type":"group","x":-199,"y":180,"width":775,"height":93,"color":"5","label":"CopyTraits"},
+		{"id":"aaddfdbe9205a6ed","type":"text","text":"CopyAtom::call","x":-180,"y":40,"width":250,"height":60,"color":"4"},
+		{"id":"968af32835c182be","type":"text","text":"CopyAtom::with(xxx)","x":306,"y":40,"width":250,"height":60,"color":"4"},
+		{"id":"67625f14ba6cb3e3","type":"text","text":"CopyTraits::copy_unpack","x":-179,"y":200,"width":250,"height":60,"color":"5"},
+		{"id":"247532a483494030","type":"text","text":"CopyOperation<TS, TD, Shape>::copy","x":-179,"y":360,"width":250,"height":60,"color":"6"},
+		{"id":"3d2518635de883dd","type":"text","text":"CopyTraits::with(xxx)","x":306,"y":200,"width":250,"height":60,"color":"5"},
+		{"id":"f4accba90142fed0","type":"file","file":"docs/design/设计模式/CopyAtom 设计模式.md","x":696,"y":38,"width":364,"height":142},
+		{"id":"cd6a74d96a741f34","type":"file","file":"docs/design/设计模式/CopyTraits 设计模式.md","x":696,"y":230,"width":380,"height":160},
+		{"id":"d07f080c5e1a6306","type":"text","text":"copy(CopyAtom.with(xxx), src, dst)","x":40,"y":-320,"width":304,"height":60,"color":"3"}
+	],
+	"edges":[
+		{"id":"417e2a97f968268b","fromNode":"aaddfdbe9205a6ed","fromSide":"bottom","toNode":"67625f14ba6cb3e3","toSide":"top"},
+		{"id":"05b4db12bb398b8a","fromNode":"67625f14ba6cb3e3","fromSide":"bottom","toNode":"247532a483494030","toSide":"top"},
+		{"id":"533d8e226b02f284","fromNode":"d07f080c5e1a6306","fromSide":"right","toNode":"968af32835c182be","toSide":"top"},
+		{"id":"49e369ce626c3086","fromNode":"968af32835c182be","fromSide":"bottom","toNode":"3d2518635de883dd","toSide":"top"},
+		{"id":"7089be9e75817813","fromNode":"3d2518635de883dd","fromSide":"right","toNode":"cd6a74d96a741f34","toSide":"left"},
+		{"id":"2753c4b31a4eb6f4","fromNode":"b84fbf99ca3616f0","fromSide":"right","toNode":"f4accba90142fed0","toSide":"left"},
+		{"id":"3854b743832a1037","fromNode":"d07f080c5e1a6306","fromSide":"left","toNode":"aaddfdbe9205a6ed","toSide":"top"}
+	]
+}

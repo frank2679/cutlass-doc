@@ -1,0 +1,9 @@
+{
+	"nodes":[
+		{"id":"2072c1b9961c8fec","x":201,"y":-255,"width":400,"height":400,"type":"file","file":"docs/design/cute/mma/mma.md"},
+		{"id":"e792be60d97690ff","type":"file","file":"docs/design/cute/copy/copy.md","x":-380,"y":-260,"width":400,"height":400}
+	],
+	"edges":[
+		{"id":"4ba3aca5244766ad","fromNode":"e792be60d97690ff","fromSide":"right","toNode":"2072c1b9961c8fec","toSide":"left"}
+	]
+}
