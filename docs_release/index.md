@@ -39,6 +39,7 @@ CuTe (CUDA Template Engine) 是 CUTLASS 3.0 引入的核心组件，是一个用
 - [Copy 操作详解](cute_copy.md)：深入探讨 Copy 操作的实现和优化
 - [TMA Copy 操作](cute_tma_copy.md)：专门介绍 Hopper 架构的 TMA 操作
 - [MMA 操作](cute_mma.md)：详细解析矩阵乘加操作的实现
+- [GMMA(SM90)操作](cute_wgmma_sm90.md)：专门介绍 Hopper 架构的 GMMA 操作
 
 ### 实践应用
 
