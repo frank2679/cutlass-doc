@@ -4,13 +4,15 @@ theme:
 docs_dir: docs_release
 nav:
   - Home: index.md
-  - Cute 核心概念: cute_core.md
-  - Layout 布局系统: cute_layout.md
-  - Tensor 张量操作: cute_tensor.md
-  - Copy 操作详解: cute_copy.md
-  - TMA Copy 操作: cute_tma_copy.md
-  - MMA 操作: cute_mma.md
-  - 实际应用示例: cute_examples.md
+  - CuTe:
+    - Cute 核心概念: cute_core.md
+    - Layout 布局系统: cute_layout.md
+    - Tensor 张量操作: cute_tensor.md
+    - Copy 操作详解: cute_copy.md
+    - MMA 操作: cute_mma.md
+    - WGMMa SM90: cute_wgmma_sm90.md
+    - TMA Copy 操作: cute_tma_copy.md
+    - 实际应用示例: cute_examples.md
   - Design:
     - '遗留问题': design/遗留问题.md
     - '设计模式':

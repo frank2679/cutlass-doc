@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "iomanip": "cpp",
+        "limits": "cpp",
+        "array": "cpp",
+        "bitset": "cpp",
+        "deque": "cpp",
+        "ios": "cpp",
+        "istream": "cpp",
+        "locale": "cpp",
+        "queue": "cpp",
+        "stack": "cpp",
+        "unordered_map": "cpp"
+    }
+}

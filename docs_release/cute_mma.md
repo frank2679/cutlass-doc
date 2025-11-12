@@ -365,21 +365,61 @@ MMA_Atom 可以针对不同的硬件架构和数据类型进行优化。
 一个典型的 MMA 操作可能如下所示：
 
 ```cpp
-// 定义输入张量 A、B 和累加张量 C、D
+// 定义输入张量 A、B 和累加张量 C
 auto A_tensor = make_tensor(A_ptr, A_layout);
 auto B_tensor = make_tensor(B_ptr, B_layout);
 auto C_tensor = make_tensor(C_ptr, C_layout);
-auto D_tensor = make_tensor(D_ptr, D_layout);
 
 // 创建 MMA 操作对象
-auto mma_atom = MMA_Atom<MMA_Op>{};
+auto mma_atom = MMA_Atom<SM70_8x8x4_F32F16F16F32_NT>{};
 
 // 获取 MMA 操作的参与者
 auto mma_thr = mma_atom.get_thread_slice(thread_idx);
 
+// 创建累加片段
+auto accum_fragment = make_fragment_like(C_tensor);
+clear(accum_fragment);
+
 // 执行 MMA 操作
-mma_thr.mma(A_tensor, B_tensor, C_tensor, D_tensor);
+mma_thr.call(A_tensor, B_tensor, accum_fragment);
 ```
+
+## mma_thr.call() 与 cute::gemm() 的区别
+
+虽然可以直接使用 `mma_thr.call()` 执行 MMA 操作，但 CuTe 仍然提供了 `cute::gemm()` 接口，这是因为两者有不同的使用场景和抽象层次：
+
+### mma_thr.call() 的特点：
+
+- **低级接口**：直接操作寄存器级别的张量片段
+- **精确控制**：需要手动管理张量的分区和布局
+- **硬件相关**：需要明确指定使用的 MMA 操作类型
+- **适合场景**：需要精细控制计算过程的高性能场景
+
+### cute::gemm() 的特点：
+
+- **高级接口**：提供统一的 GEMM 接口，自动处理底层细节
+- **自动分发**：根据张量的维度和内存类型自动选择合适的实现
+- **类型推导**：可以根据输入张量的类型自动推导合适的 MMA 操作
+- **灵活适配**：可以处理从简单元素操作到复杂批量矩阵运算的各种情况
+- **适合场景**：通用的矩阵乘法计算，简化开发流程
+
+### 使用建议：
+
+``cpp
+// 当需要精细控制时，使用 mma_thr.call()
+auto mma_atom = MMA_Atom<SM70_8x8x4_F32F16F16F32_NT>{};
+auto mma_thr = mma_atom.get_thread_slice(thread_idx);
+mma_thr.call(A_frag, B_frag, C_frag);
+
+// 当需要通用接口时，使用 cute::gemm()
+cute::gemm(D_tensor, A_tensor, B_tensor, C_tensor);
+```
+
+总的来说，`mma_thr.call()` 提供了更底层、更精确的控制，而 `cute::gemm()` 提供了更高级、更通用的接口。开发者可以根据具体需求选择合适的接口。
+
+## GMMA Descriptor 与 Swizzle 信息
+
+对于 Hopper (SM90) 架构中的 GMMA 操作，请参考专门的文档：[CuTe WGmma SM90](cute_wgmma_sm90.md)
 
 ## 累加片段 (Accumulator Fragment)
 
@@ -393,7 +433,7 @@ auto accum_fragment = make_fragment_like(C_tensor);
 clear(accum_fragment);
 
 // 执行多次 MMA 操作累加结果
-mma_thr.mma(A_tensor, B_tensor, accum_fragment, accum_fragment);
+mma_thr.call(A_tensor, B_tensor, accum_fragment, accum_fragment);
 ```
 
 ## 与 Copy 操作的协同
