@@ -6,8 +6,8 @@ Tensor 是 CuTe 中的核心数据结构，它结合了数据指针和 Layout，
 
 Tensor 由两个主要组件构成：
 
-1. **Engine**：管理数据的存储和访问
-2. **Layout**：定义逻辑坐标到线性内存位置的映射
+- **Engine**：管理数据的存储和访问
+- **Layout**：定义逻辑坐标到线性内存位置的映射
 
 ### Tensor 的数学表示
 
@@ -45,9 +45,9 @@ auto reg_tensor = make_tensor(reg_data, make_layout(make_shape(2, 4), GenRowMajo
 
 ### 不同内存空间的 Tensor
 
-1. **全局内存 Tensor**：使用 `make_gmem_ptr` 创建
-2. **共享内存 Tensor**：使用 `make_smem_ptr` 创建
-3. **寄存器 Tensor**：直接使用数组创建
+- **全局内存 Tensor**：使用 `make_gmem_ptr` 创建
+- **共享内存 Tensor**：使用 `make_smem_ptr` 创建
+- **寄存器 Tensor**：直接使用数组创建
 
 ## Tensor 操作
 
@@ -68,9 +68,9 @@ auto sub_tensor = tensor(_, 2);  // 获取第二列的所有元素
 
 ### Tensor 变换操作
 
-1. **切片操作**：提取 Tensor 的一部分
-2. **重塑操作**：改变 Tensor 的形状
-3. **转置操作**：交换 Tensor 的维度
+- **切片操作**：提取 Tensor 的一部分
+- **重塑操作**：改变 Tensor 的形状
+- **转置操作**：交换 Tensor 的维度
 
 ### Tensor 变换示例
 
@@ -94,9 +94,9 @@ Tensor 的行为很大程度上由其 Layout 决定。
 
 ### Layout 对 Tensor 的影响
 
-1. **内存访问模式**：Layout 决定了如何将逻辑坐标映射到物理内存地址
-2. **数据重排**：通过不同的 Layout 实现数据的重排
-3. **性能优化**：合理的 Layout 设计可以优化内存访问性能
+- **内存访问模式**：Layout 决定了如何将逻辑坐标映射到物理内存地址
+- **数据重排**：通过不同的 Layout 实现数据的重排
+- **性能优化**：合理的 Layout 设计可以优化内存访问性能
 
 ### Layout 影响示例
 
@@ -202,7 +202,7 @@ auto fast_tensor = make_tensor(ptr, make_layout(make_shape(16, 16), GenRowMajor{
 auto tiled_copy = make_tiled_copy(CopyAtom{}, make_shape(32, 32), make_shape(4, 8));
 
 // 获取线程切片
-auto thread_slice = tiled_copy.get_slice(thread_idx);
+auto thread_slice = tiled_copy.get_slice(threadIdx.x);
 
 // 分区张量
 auto src_frag = thread_slice.partition_S(src_tensor);

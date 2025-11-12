@@ -8,10 +8,10 @@ CUTLASS (CUDA Templates for Linear Algebra Subroutines) 是 NVIDIA 开发的一�
 
 ### CUTLASS 的特点
 
-1. **高性能**：充分利用 NVIDIA GPU 的硬件特性，包括 Tensor Cores
-2. **可扩展性**：支持从消费级 GPU 到数据中心级 GPU 的各种硬件平台
-3. **模块化设计**：提供可组合的组件，便于定制和扩展
-4. **开源**：完全开源，社区驱动开发
+- **高性能**：充分利用 NVIDIA GPU 的硬件特性，包括 Tensor Cores
+- **可扩展性**：支持从消费级 GPU 到数据中心级 GPU 的各种硬件平台
+- **模块化设计**：提供可组合的组件，便于定制和扩展
+- **开源**：完全开源，社区驱动开发
 
 ## 什么是 CuTe？
 
@@ -19,10 +19,10 @@ CuTe (CUDA Template Engine) 是 CUTLASS 3.0 引入的核心组件，是一个用
 
 ### CuTe 的核心概念
 
-1. **Layout**：描述逻辑坐标到线性内存位置的映射关系
-2. **Tensor**：结合数据指针和 Layout 的多维数据结构
-3. **Copy**：实现高效的数据复制操作
-4. **MMA**：实现矩阵乘加操作
+- **Layout**：描述逻辑坐标到线性内存位置的映射关系
+- **Tensor**：结合数据指针和 Layout 的多维数据结构
+- **Copy**：实现高效的数据复制操作
+- **MMA**：实现矩阵乘加操作
 
 ## 文档结构
 
@@ -68,10 +68,10 @@ CuTe (CUDA Template Engine) 是 CUTLASS 3.0 引入的核心组件，是一个用
 
 以下是一些有用的学习资源：
 
-1. [CUTLASS GitHub 仓库](https://github.com/NVIDIA/cutlass)：官方源代码和文档
-2. [CUTLASS Documentation](https://nvidia.github.io/cutlass/)：官方文档
-3. [CUDA Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/)：CUDA 编程指南
-4. [NVIDIA Developer Blog](https://developer.nvidia.com/blog/)：NVIDIA 开发者博客
+- [CUTLASS GitHub 仓库](https://github.com/NVIDIA/cutlass)：官方源代码和文档
+- [CUTLASS Documentation](https://nvidia.github.io/cutlass/)：官方文档
+- [CUDA Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/)：CUDA 编程指南
+- [NVIDIA Developer Blog](https://developer.nvidia.com/blog/)：NVIDIA 开发者博客
 
 ## 贡献与反馈
 

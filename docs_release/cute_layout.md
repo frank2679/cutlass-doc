@@ -6,8 +6,8 @@ Layout 是 CuTe 的核心概念之一，它描述了逻辑坐标到线性内存�
 
 Layout 定义了从多维逻辑坐标到一维线性位置（通常以位或字节为单位）的映射。它由两个主要部分组成：
 
-1. Shape（形状）：描述每个维度的大小
-2. Stride（步幅）：描述每个维度的跨度
+- Shape（形状）：描述每个维度的大小
+- Stride（步幅）：描述每个维度的跨度
 
 ### Layout 的数学表示
 
@@ -17,7 +17,7 @@ Layout 可以表示为一个函数：
 L(c) = sum(c[i] * stride[i]) for i in range(rank)
 ```
 
-其中 c 是逻辑坐标，stride 是步幅向量。
+其中 c 是逻辑坐标，stride 是步幅向量，L(c) 是线性偏移量。
 
 ## Layout 的创建
 
@@ -51,11 +51,11 @@ CuTe 提供了丰富的 Layout 操作函数，用于创建、转换和组合 Lay
 
 ### 基本操作
 
-1. **composition**：组合两个 Layout
-2. **complement**：计算 Layout 的补集
-3. **compact**：创建紧凑版本的 Layout
-4. **coalesce**：合并连续的维度
-5. **flatten**：展平 Layout
+- **composition**：组合两个 Layout
+- **complement**：计算 Layout 的补集
+- **compact**：创建紧凑版本的 Layout
+- **coalesce**：合并连续的维度
+- **flatten**：展平 Layout
 
 ### Layout 组合示例
 
@@ -84,15 +84,15 @@ CuTe 提供了多种预定义的 Layout 类型：
 
 ### 基本 Layout 类型
 
-1. **Layout**：基本的 Layout 类型
-2. **LogicalLayout**：逻辑 Layout
-3. **PhysicalLayout**：物理 Layout
+- **Layout**：基本的 Layout 类型，由 Shape 和 Stride 组成，用于描述任意维度的数据布局
+- **LogicalLayout**：逻辑 Layout，用于描述逻辑坐标空间的布局，不直接关联物理内存地址
+- **PhysicalLayout**：物理 Layout，用于描述物理内存中的实际布局，与具体的内存地址相关联
 
 ### 特殊 Layout
 
-1. **GenRowMajor**：生成行主序 Layout
-2. **GenColMajor**：生成列主序 Layout
-3. **Swizzle**：内存交换 Layout
+- **GenRowMajor**：生成行主序 Layout，创建按行优先顺序排列的内存布局
+- **GenColMajor**：生成列主序 Layout，创建按列优先顺序排列的内存布局
+- **Swizzle**：内存交换 Layout，用于在共享内存中实现特定的内存访问模式以优化性能
 
 ## Layout 的属性
 
@@ -100,9 +100,9 @@ Layout 具有多种属性，可以通过函数获取：
 
 ### 基本属性
 
-1. **rank**：Layout 的维度数
-2. **size**：Layout 覆盖的元素总数
-3. **cosize**：Layout 的共大小
+- **rank**：Layout 的维度数
+- **size**：Layout 覆盖的元素总数
+- **cosize**：Layout 的共大小
 
 ### 示例
 
@@ -120,10 +120,10 @@ Layout 可以进行多种转换操作：
 
 ### 常见转换
 
-1. **recast**：重新解释 Layout 的元素类型
-2. **right_inverse**：计算 Layout 的右逆
-3. **left_inverse**：计算 Layout 的左逆
-4. **zip**：压缩多个 Layout
+- **recast**：重新解释 Layout 的元素类型
+- **right_inverse**：计算 Layout 的右逆
+- **left_inverse**：计算 Layout 的左逆
+- **zip**：压缩多个 Layout
 
 ### Layout 转换示例
 

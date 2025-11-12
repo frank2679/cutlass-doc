@@ -1,6 +1,6 @@
 site_name: CUTLASS Notes
 theme:
-  name: material
+  name: readthedocs
 docs_dir: docs_release
 nav:
   - Home: index.md
