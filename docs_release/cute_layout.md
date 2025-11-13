@@ -45,6 +45,101 @@ auto layout_combined = make_layout(make_shape(Shape<_2,_3>{}, Shape<_4,_5>{}),
                                    make_stride(Stride<_1,_6>{}, Stride<_2,_7>{}));
 ```
 
+## Composed Layout（组合布局）
+
+Composed Layout 是 CuTe 中一种强大的抽象，它通过组合多个布局和变换来实现复杂的数据转换。它提供了一种灵活的方式来操作内存布局和坐标系统。
+
+### Composed Layout 的组成
+
+Composed Layout 由三个关键组件组成：
+
+**内部布局/变换**（inner）：
+
+   - 可以是布局、交换操作（swizzle）或自定义变换函数
+   - 应用于坐标的最终变换
+   - 支持任意的坐标操作
+
+**偏移量**（offset）：
+
+   - 通常表示为整数元组
+   - 向坐标添加常量位移
+   - 实现对数据位置的精细控制
+
+**外部布局**（outer）：
+
+   - 用户可见的布局
+   - 定义初始的坐标变换
+   - 确定数据结构的形状和组织方式
+
+### Composed Layout 的数学表示
+
+这些组件的数学组合定义为：
+
+```
+R(c) := (inner ∘ offset ∘ outer)(c) := inner(offset + outer(c))
+```
+
+其中：
+- c 代表输入坐标
+- ∘ 表示函数组合
+- 变换从右到左应用
+
+### Composed Layout 的创建
+
+在 C++ 中，可以通过以下方式创建 Composed Layout：
+
+```cpp
+// 创建一个 Composed Layout
+auto composed_layout = make_composed_layout(inner, offset, outer);
+```
+
+在 CuTe 的 GMMA 操作中，经常使用 Composed Layout 来描述共享内存的布局，特别是当涉及 swizzle 操作时：
+
+```cpp
+// M|N-major GMMA layouts in units of bits
+using Layout_MN_INTER_Atom_Bits = ComposedLayout<Swizzle<0,4,3>, smem_ptr_flag, Layout<Shape< _128,_8>,Stride<_1, _128>>>;
+using Layout_MN_SW32_Atom_Bits  = ComposedLayout<Swizzle<1,4,3>, smem_ptr_flag, Layout<Shape< _256,_8>,Stride<_1, _256>>>;
+using Layout_MN_SW64_Atom_Bits  = ComposedLayout<Swizzle<2,4,3>, smem_ptr_flag, Layout<Shape< _512,_8>,Stride<_1, _512>>>;
+using Layout_MN_SW128_Atom_Bits = ComposedLayout<Swizzle<3,4,3>, smem_ptr_flag, Layout<Shape<_1024,_8>,Stride<_1,_1024>>>;
+```
+
+### Composed Layout 与 composition 的关系
+
+Composed Layout 与 composition 操作密切相关，但它们有不同的用途和特点：
+
+**composition 函数**：
+
+   - composition 是 CuTe 中的一个函数，用于将两个 Layout 进行组合
+   - 它可以创建一个新的 Layout，表示两个 Layout 的函数组合
+   - 语法：`composition(layoutA, layoutB)` 或 `layoutA.compose(layoutB)`
+
+**Composed Layout**：
+
+   - Composed Layout 是一个特定的类型，用于表示无法通过普通 composition 函数组合的布局
+   - 它专门用于处理当"可除性条件"不满足时的情况
+   - 它由三个部分组成：inner layout、offset 和 outer layout
+
+**两者关系**：
+
+   - Composed Layout 是 composition 概念的一种扩展实现
+   - 当普通 composition 无法应用时，可以使用 Composed Layout
+   - Composed Layout 提供了与普通 Layout 类似的功能，包括切片、分区、坐标到索引的映射等
+
+示例：
+
+```cpp
+// 使用 composition 函数组合两个普通 Layout
+auto layoutA = make_layout(make_shape(6, 2), make_stride(8, 2));
+auto layoutB = make_layout(make_shape(4, 3), make_stride(3, 1));
+auto result = composition(layoutA, layoutB); // 结果是一个普通 Layout
+
+// 使用 Composed Layout 处理更复杂的情况
+auto swizzle = Swizzle<3,4,3>{};
+auto offset = Int<0>{};
+auto layout = make_layout(make_shape(1024, 8), make_stride(1, 1024));
+auto composed = make_composed_layout(swizzle, offset, layout);
+```
+
 ## Layout 操作
 
 CuTe 提供了丰富的 Layout 操作函数，用于创建、转换和组合 Layout。
