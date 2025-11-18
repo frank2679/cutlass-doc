@@ -405,7 +405,7 @@ mma_thr.call(A_tensor, B_tensor, accum_fragment);
 
 ### 使用建议：
 
-``cpp
+```cpp
 // 当需要精细控制时，使用 mma_thr.call()
 auto mma_atom = MMA_Atom<SM70_8x8x4_F32F16F16F32_NT>{};
 auto mma_thr = mma_atom.get_thread_slice(thread_idx);
