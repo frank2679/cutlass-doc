@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>GMMA(SM90) - CUTLASS Notes</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "GMMA(SM90)";
+        var mkdocs_page_input_path = "cute_wgmma_sm90.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> CUTLASS Notes
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">CuTe</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../cute_core/">Cute 核心概念</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../cute_layout/">Layout 布局系统</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../cute_tensor/">Tensor 张量操作</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Copy 操作</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../cute_copy/">Copy 操作详解</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../cute_tma_copy/">TMA Copy 操作</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >MMA 操作</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../cute_mma/">MMA 操作详解</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">GMMA(SM90)</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#gmma">GMMA 概述</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#gmmadescriptor">GmmaDescriptor 结构</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#layouttype">LayoutType 枚举</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#swizzle">Swizzle 机制详解</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#swizzle-b-m-s">Swizzle 参数 (B, M, S)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#swizzle_1">Swizzle 工作原理</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#b32-b64-b128">B32, B64, B128 数值含义</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#layout-swizzle">Layout 如何描述 Swizzle</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#swizzle_2">Swizzle 机制实现原理</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#tensor-engine-bms">如何从 Tensor Engine 中提取 BMS 参数</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#swizzle_3">Swizzle 信息的获取</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#gmma-descriptor">GMMA Descriptor 的构建过程</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#descriptoriterator-smem_desc">DescriptorIterator 和 smem_desc</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#gmma_1">GMMA 内存布局</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#mn-major">M|N-major 布局</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#k-major">K-major 布局</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#gmma_2">GMMA 操作示例</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#_1">总结</a>
+    </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../cute_examples/">实际应用示例</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">CUTLASS Notes</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">CuTe</li>
+          <li class="breadcrumb-item">MMA 操作</li>
+      <li class="breadcrumb-item active">GMMA(SM90)</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="cute-wgmma-sm90-hopper">CuTe WGmma SM90 (Hopper) 详解</h1>
+<p>在 NVIDIA Hopper (SM90) 架构中，引入了新一代的 GMMA (Group Matrix Multiply-Accumulate) 指令，这些指令提供了更高的性能和更灵活的内存布局支持。本文档将详细介绍 SM90 架构下的 GMMA 相关概念、数据结构和使用方法。</p>
+<h2 id="gmma">GMMA 概述</h2>
+<p>GMMA 是 Hopper 架构中引入的新一代矩阵乘法累加指令，与之前架构中的 MMA 指令相比，GMMA 提供了以下改进：</p>
+<ul>
+<li>支持更大的矩阵操作（如 64x128x16）</li>
+<li>warpgroup 级别的协作（128个线程）</li>
+<li>更灵活的共享内存布局支持</li>
+<li>支持多种数据类型组合</li>
+</ul>
+<h2 id="gmmadescriptor">GmmaDescriptor 结构</h2>
+<p>在使用共享内存的 GMMA 操作中，<a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/arch/mma_sm90_gmma.hpp#L424-L430">fma</a> 函数的 <code>desc_a</code> 和 <code>desc_b</code> 参数使用 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/arch/mma_sm90_desc.hpp#L58-L87">GmmaDescriptor</a> 类型，该结构包含了 swizzle 信息和其他内存布局参数：</p>
+<pre><code class="language-cpp">union GmmaDescriptor
+{
+  // ... 其他成员 ...
+
+  // Bitfield implementation avoids the need for shifts in assignment
+  struct {
+    // start_address, bit [0,14), 4LSB not included
+    uint16_t start_address_ : 14, : 2;        // 14 bits [0,14), 2 bits unused
+    // leading dimension byte offset, bit [16,30), 4LSB not included
+    // For N: This is the stride from the first col to the second col of the 8x2 brick in INTERLEAVED
+    //   Unused for all SWIZZLE_* layouts (and assumed to be 1)
+    // For T: This is the stride from the first 8 rows to the next 8 rows.
+    uint16_t leading_byte_offset_ : 14, : 2;  // 14 bits [0,14), 2 bits unused
+    // stride dimension byte offset, bit [32,46), 4LSB not included
+    // For N: This is the stride from the first 8 rows to the next 8 rows.
+    // For T: This is the stride fro mthe first 8 cols to the next 8 cols.
+    uint16_t stride_byte_offset_ : 14, : 2;   // 14 bits [0,14), 2 bits unused
+    // base_offset, bit [49,52)
+    // Valid only for SWIZZLE_128B and SWIZZLE_64B
+    uint8_t : 1, base_offset_ : 3, : 4;       // 1 bit unused, 3 bits [1,4), 4 bits unused
+    // layout type, bit [62,64)
+    // SWIZZLE_NONE = 0, SWIZZLE_32B = 3, SWIZZLE_64B = 2, SWIZZLE_128B = 1
+    uint8_t : 6, layout_type_ : 2;            // 6 bits unused, 2 bits [6,8)
+  } bitfield;
+
+  // ... 其他成员 ...
+};
+</code></pre>
+<p>其中 <code>layout_type_</code> 字段直接描述了 swizzle 类型：</p>
+<ul>
+<li>LayoutType::INTERLEAVE (0): 无 swizzle</li>
+<li>LayoutType::B128 (1): 128字节 swizzle</li>
+<li>LayoutType::B64 (2): 64字节 swizzle</li>
+<li>LayoutType::B32 (3): 32字节 swizzle</li>
+</ul>
+<h3 id="layouttype">LayoutType 枚举</h3>
+<p>LayoutType 定义了不同的内存布局类型：</p>
+<ul>
+<li><code>INTERLEAVE</code>: 无 swizzle 操作</li>
+<li><code>B32</code>: 32 字节 swizzle</li>
+<li><code>B64</code>: 64 字节 swizzle</li>
+<li><code>B128</code>: 128 字节 swizzle</li>
+</ul>
+<h2 id="swizzle">Swizzle 机制详解</h2>
+<h3 id="swizzle-b-m-s">Swizzle 参数 (B, M, S)</h3>
+<p>在 CuTe 中，Swizzle 是一个模板类，定义如下：</p>
+<pre><code class="language-cpp">template &lt;int BBits, int MBase, int SShift = BBits&gt;
+struct Swizzle
+</code></pre>
+<p>三个模板参数的含义：</p>
+<ol>
+<li><strong>BBits (B)</strong>: 表示参与 swizzle 操作的位数，即掩码中的位数</li>
+<li><strong>MBase (M)</strong>: 表示保持不变的最低有效位数</li>
+<li><strong>SShift (S)</strong>: 表示 YYY 掩码的移位距离（正数表示向右移位，负数表示向左移位）</li>
+</ol>
+<h3 id="swizzle_1">Swizzle 工作原理</h3>
+<p>Swizzle 操作的位布局如下：</p>
+<pre><code>0bxxxxxxxxxxxxxxxYYYxxxxxxxZZZxxxx
+                              ^--^ MBase 是保持不变的最低有效位数
+                 ^-^       ^-^     BBits 是掩码中的位数
+                   ^---------^     SShift 是 YYY 掩码的移位距离
+</code></pre>
+<p>例如：</p>
+<pre><code>0bxxxxxxxxxxxxxxxxYYxxxxxxxxxZZxxx
+</code></pre>
+<p>结果是：</p>
+<pre><code>0bxxxxxxxxxxxxxxxxYYxxxxxxxxxAAxxx 其中 AA = ZZ xor YY
+</code></pre>
+<h3 id="b32-b64-b128">B32, B64, B128 数值含义</h3>
+<p>B32、B64 和 B128 这三个 swizzle 模式的数值代表了不同的 swizzle 粒度和内存访问模式：</p>
+<ol>
+<li><strong>B32 (数值1)</strong>: 32字节 swizzle 模式</li>
+<li>使用 <code>Swizzle&lt;1,4,3&gt;</code> 模板参数</li>
+<li>对 32 字节 (256 位) 的数据块进行 swizzle 操作</li>
+<li>
+<p>适用于较小的数据块或特定的内存访问模式</p>
+</li>
+<li>
+<p><strong>B64 (数值2)</strong>: 64字节 swizzle 模式</p>
+</li>
+<li>使用 <code>Swizzle&lt;2,4,3&gt;</code> 模板参数</li>
+<li>对 64 字节 (512 位) 的数据块进行 swizzle 操作</li>
+<li>
+<p>提供中等粒度的内存访问优化</p>
+</li>
+<li>
+<p><strong>B128 (数值3)</strong>: 128字节 swizzle 模式</p>
+</li>
+<li>使用 <code>Swizzle&lt;3,4,3&gt;</code> 模板参数</li>
+<li>对 128 字节 (1024 位) 的数据块进行 swizzle 操作</li>
+<li>提供最大粒度的内存访问优化，适用于大规模数据处理</li>
+</ol>
+<p>这些数值在 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/atom/mma_traits_sm90_gmma.hpp#L125-L146">layout_type</a> 函数中被映射为对应的 LayoutType 枚举值：</p>
+<ul>
+<li><code>num_bits = 1</code> 对应 <code>LayoutType::B32</code> (32字节 swizzle)</li>
+<li><code>num_bits = 2</code> 对应 <code>LayoutType::B64</code> (64字节 swizzle)</li>
+<li><code>num_bits = 3</code> 对应 <code>LayoutType::B128</code> (128字节 swizzle)</li>
+</ul>
+<p>数值越大表示 swizzle 操作的粒度越大，可以更好地优化大规模数据的内存访问模式，但也可能增加实现的复杂性。</p>
+<h3 id="layout-swizzle">Layout 如何描述 Swizzle</h3>
+<p>在 CuTe 中，Layout 可以通过 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/layout_composed.hpp#L51-L63">ComposedLayout</a> 来描述 swizzle。<a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/layout_composed.hpp#L51-L63">ComposedLayout</a> 是一种组合布局，它将多个布局或变换组合在一起，其中就包括 Swizzle 变换。</p>
+<p>一个典型的 swizzle layout 定义如下：</p>
+<pre><code class="language-cpp">using Layout_MN_SW128_Atom_Bits = ComposedLayout&lt;Swizzle&lt;3,4,3&gt;, smem_ptr_flag, Layout&lt;Shape&lt; _1024,_8&gt;,Stride&lt;_1,_1024&gt;&gt;&gt;;
+</code></pre>
+<p>这个定义包含三个部分：</p>
+<ol>
+<li><strong>Swizzle&lt;3,4,3&gt;</strong>: Swizzle 变换函数，描述了如何进行内存地址的 swizzle 操作</li>
+<li><strong>smem_ptr_flag</strong>: 偏移量，通常为 0，用于调整地址偏移</li>
+<li><strong>Layout&lt;Shape&lt; _1024,_8&gt;,Stride&lt;_1,_1024&gt;&gt;</strong>: 基础布局，描述了数据的基本排列方式</li>
+</ol>
+<p>通过这种组合方式，Layout 能够完整地描述包含 swizzle 变换的复杂内存布局。当需要创建实际的张量时，CuTe 会将这些信息综合起来，生成能够正确访问 swizzled 内存的代码。</p>
+<p>例如，在 GMMA 操作中，常见的 swizzle layouts 定义如下：</p>
+<pre><code class="language-cpp">// M|N-major GMMA layouts in units of bits
+using Layout_MN_INTER_Atom_Bits = ComposedLayout&lt;Swizzle&lt;0,4,3&gt;, smem_ptr_flag, Layout&lt;Shape&lt; _128,_8&gt;,Stride&lt;_1, _128&gt;&gt;&gt;;
+using Layout_MN_SW32_Atom_Bits  = ComposedLayout&lt;Swizzle&lt;1,4,3&gt;, smem_ptr_flag, Layout&lt;Shape&lt; _256,_8&gt;,Stride&lt;_1, _256&gt;&gt;&gt;;
+using Layout_MN_SW64_Atom_Bits  = ComposedLayout&lt;Swizzle&lt;2,4,3&gt;, smem_ptr_flag, Layout&lt;Shape&lt; _512,_8&gt;,Stride&lt;_1, _512&gt;&gt;&gt;;
+using Layout_MN_SW128_Atom_Bits = ComposedLayout&lt;Swizzle&lt;3,4,3&gt;, smem_ptr_flag, Layout&lt;Shape&lt;_1024,_8&gt;,Stride&lt;_1,_1024&gt;&gt;&gt;;
+
+// K-major GMMA layouts in units of bits
+using Layout_K_INTER_Atom_Bits  = ComposedLayout&lt;Swizzle&lt;0,4,3&gt;, smem_ptr_flag, Layout&lt;Shape&lt;_8, _128&gt;,Stride&lt; _128,_1&gt;&gt;&gt;;
+using Layout_K_SW32_Atom_Bits   = ComposedLayout&lt;Swizzle&lt;1,4,3&gt;, smem_ptr_flag, Layout&lt;Shape&lt;_8, _256&gt;,Stride&lt; _256,_1&gt;&gt;&gt;;
+using Layout_K_SW64_Atom_Bits   = ComposedLayout&lt;Swizzle&lt;2,4,3&gt;, smem_ptr_flag, Layout&lt;Shape&lt;_8, _512&gt;,Stride&lt; _512,_1&gt;&gt;&gt;;
+using Layout_K_SW128_Atom_Bits  = ComposedLayout&lt;Swizzle&lt;3,4,3&gt;, smem_ptr_flag, Layout&lt;Shape&lt;_8,_1024&gt;,Stride&lt;_1024,_1&gt;&gt;&gt;;
+</code></pre>
+<p>这些定义展示了如何使用 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/layout_composed.hpp#L51-L63">ComposedLayout</a> 将 Swizzle 变换与基础内存布局组合起来，形成完整的内存访问模式描述。</p>
+<h3 id="swizzle_2">Swizzle 机制实现原理</h3>
+<p>Swizzle 机制通过位操作来重新排列内存访问模式，以提高内存带宽利用率和缓存局部性。在 CuTe 中，Swizzle 的实现基于位掩码操作：</p>
+<pre><code class="language-cpp">template &lt;int BBits, int MBase, int SShift = BBits&gt;
+struct Swizzle
+{
+  static constexpr int num_bits = BBits;
+  static constexpr int num_base = MBase;
+  static constexpr int num_shft = SShift;
+
+  // 使用 'int' 类型以避免无意中转换为无符号数
+  using bit_msk = cute::constant&lt;int, (1 &lt;&lt; num_bits) - 1&gt;;
+  using yyy_msk = cute::constant&lt;int, bit_msk{} &lt;&lt; (num_base + max(0,num_shft))&gt;;
+  using zzz_msk = cute::constant&lt;int, bit_msk{} &lt;&lt; (num_base - min(0,num_shft))&gt;;
+  using msk_sft = cute::constant&lt;int, num_shft&gt;;
+
+  static constexpr uint32_t swizzle_code = uint32_t(yyy_msk::value | zzz_msk::value);
+
+  template &lt;class Offset&gt;
+  CUTE_HOST_DEVICE constexpr static
+  auto
+  apply(Offset const&amp; offset)
+  {
+    return offset ^ shiftr(offset &amp; yyy_msk{}, msk_sft{});   // ZZZ ^= YYY
+  }
+
+  template &lt;class Offset&gt;
+  CUTE_HOST_DEVICE constexpr
+  auto
+  operator()(Offset const&amp; offset) const
+  {
+    return apply(offset);
+  }
+};
+</code></pre>
+<p>Swizzle 的核心实现原理是通过位操作来交换特定位置的位：</p>
+<ol>
+<li><strong>位掩码创建</strong>：</li>
+<li><code>bit_msk</code> 创建一个包含 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/swizzle.hpp#L51-L51">num_bits</a> 个1的掩码</li>
+<li><code>yyy_msk</code> 创建 YYY 位的掩码，位置根据 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/swizzle.hpp#L52-L52">num_base</a> 和 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/swizzle.hpp#L53-L53">num_shft</a> 确定</li>
+<li>
+<p><code>zzz_msk</code> 创建 ZZZ 位的掩码，位置同样根据 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/swizzle.hpp#L52-L52">num_base</a> 和 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/swizzle.hpp#L53-L53">num_shft</a> 确定</p>
+</li>
+<li>
+<p><strong>位操作应用</strong>：</p>
+</li>
+<li>通过 <code>offset &amp; yyy_msk{}</code> 提取 YYY 位</li>
+<li>使用 <code>shiftr</code> 函数根据 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/swizzle.hpp#L56-L56">msk_sft</a> 移位</li>
+<li>最后通过异或操作 (<code>^</code>) 将移位后的 YYY 位与 ZZZ 位交换</li>
+</ol>
+<p>这种位操作机制允许在编译时确定内存访问模式，从而优化 GPU 内存子系统的使用。</p>
+<h3 id="tensor-engine-bms">如何从 Tensor Engine 中提取 BMS 参数</h3>
+<p><code>layout_type</code> 函数通过 <code>get_swizzle_t</code> 从 Tensor 的 Engine 中提取 Swizzle 信息：</p>
+<pre><code class="language-cpp">template &lt;class Engine, class Shape, class Stride&gt;
+CUTE_HOST_DEVICE constexpr
+LayoutType
+layout_type(Tensor&lt;Engine, Layout&lt;Shape,Stride&gt;&gt; const&amp;)
+{
+  static_assert(is_same&lt;uint128_t, typename Engine::value_type&gt;::value,
+                &quot;Expected uint128_t type in LayoutType conversion.&quot;);
+
+  using Swizzle = get_swizzle_t&lt;Engine&gt;;
+  constexpr int B = Swizzle::num_bits;
+  constexpr int M = Swizzle::num_base;
+  constexpr int S = Swizzle::num_shft;
+
+  static_assert(M == 4,           &quot;Unsupported layout swizzle&quot;);
+  static_assert(0 &lt;= B &amp;&amp; B &lt;= 3, &quot;Unsupported layout swizzle&quot;);
+  static_assert(S == 3,           &quot;Unsupported layout swizzle&quot;);
+
+  switch (B) {
+    case 0: return LayoutType::INTERLEAVE;
+    case 1: return LayoutType::B32;
+    case 2: return LayoutType::B64;
+    case 3: return LayoutType::B128;
+  }
+  return LayoutType::INTERLEAVE;  // ERROR
+}
+</code></pre>
+<p>对应关系：</p>
+<ul>
+<li><code>num_bits = 0</code> 对应 <code>LayoutType::INTERLEAVE</code> (无 swizzle)</li>
+<li><code>num_bits = 1</code> 对应 <code>LayoutType::B32</code> (32字节 swizzle)</li>
+<li><code>num_bits = 2</code> 对应 <code>LayoutType::B64</code> (64字节 swizzle)</li>
+<li><code>num_bits = 3</code> 对应 <code>LayoutType::B128</code> (128字节 swizzle)</li>
+</ul>
+<h2 id="swizzle_3">Swizzle 信息的获取</h2>
+<p><a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/atom/mma_traits_sm90_gmma.hpp#L204-L251">make_gmma_desc</a> 函数通过分析张量的布局信息来确定 swizzle 类型。具体来说，它使用 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/atom/mma_traits_sm90_gmma.hpp#L125-L146">layout_type</a> 函数来提取 swizzle 信息：</p>
+<pre><code class="language-cpp">template &lt;class Engine, class Shape, class Stride&gt;
+CUTE_HOST_DEVICE constexpr
+LayoutType
+layout_type(Tensor&lt;Engine, Layout&lt;Shape,Stride&gt;&gt; const&amp;)
+{
+  static_assert(is_same&lt;uint128_t, typename Engine::value_type&gt;::value,
+                &quot;Expected uint128_t type in LayoutType conversion.&quot;);
+
+  using Swizzle = get_swizzle_t&lt;Engine&gt;;
+  constexpr int B = Swizzle::num_bits;
+  constexpr int M = Swizzle::num_base;
+  constexpr int S = Swizzle::num_shft;
+
+  static_assert(M == 4,           &quot;Unsupported layout swizzle&quot;);
+  static_assert(0 &lt;= B &amp;&amp; B &lt;= 3, &quot;Unsupported layout swizzle&quot;);
+  static_assert(S == 3,           &quot;Unsupported layout swizzle&quot;);
+
+  switch (B) {
+    case 0: return LayoutType::INTERLEAVE;
+    case 1: return LayoutType::B32;
+    case 2: return LayoutType::B64;
+    case 3: return LayoutType::B128;
+  }
+  return LayoutType::INTERLEAVE;  // ERROR
+}
+</code></pre>
+<p>这个函数从张量的 Engine 类型中提取 Swizzle 信息，然后根据 Swizzle 的 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/swizzle.hpp#L51-L51">num_bits</a> 字段确定 swizzle 类型：</p>
+<ul>
+<li>当 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/swizzle.hpp#L51-L51">num_bits</a> = 0 时，对应 LayoutType::INTERLEAVE (无 swizzle)</li>
+<li>当 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/swizzle.hpp#L51-L51">num_bits</a> = 1 时，对应 LayoutType::B32 (32字节 swizzle)</li>
+<li>当 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/swizzle.hpp#L51-L51">num_bits</a> = 2 时，对应 LayoutType::B64 (64字节 swizzle)</li>
+<li>当 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/swizzle.hpp#L51-L51">num_bits</a> = 3 时，对应 LayoutType::B128 (128字节 swizzle)</li>
+</ul>
+<h2 id="gmma-descriptor">GMMA Descriptor 的构建过程</h2>
+<p>GMMA Descriptor 是通过 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/atom/mma_traits_sm90_gmma.hpp#L204-L251">make_gmma_desc</a> 函数构建的。这个函数接受一个共享内存张量作为参数，并根据张量的布局信息创建相应的描述符：</p>
+<pre><code class="language-cpp">template &lt;Major MajorMode, class TEngine, class TLayout&gt;
+CUTE_HOST_DEVICE constexpr
+GmmaDescriptor
+make_gmma_desc(Tensor&lt;TEngine,TLayout&gt; const&amp; tensor)
+{
+  static_assert(is_smem&lt;TEngine&gt;::value, &quot;GMMA Descriptors can only be constructed on smem.&quot;);
+  static_assert(TLayout::rank == 2, &quot;GMMA Descriptors can only be constructed on rank-2 tensors.&quot;);
+  using value_type = typename TEngine::value_type;
+
+  // ... 实现细节 ...
+}
+</code></pre>
+<p>这个函数会分析张量的内存布局，提取起始地址、步幅等信息，并根据布局类型设置相应的 swizzle 模式。</p>
+<h2 id="descriptoriterator-smem_desc">DescriptorIterator 和 smem_desc</h2>
+<p>在 CuTe 中，<a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/atom/mma_traits_sm90_gmma.hpp#L288-L313">DescriptorIterator</a> 是一个包装 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/arch/mma_sm90_desc.hpp#L58-L87">GmmaDescriptor</a> 的迭代器，用于在 GMMA 操作中传递描述符信息。<a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/atom/mma_traits_sm90_gmma.hpp#L315-L364">smem_desc</a> 是一个模板结构体，用于创建共享内存描述符张量：</p>
+<pre><code class="language-cpp">template &lt;Major&gt;
+struct smem_desc : DescriptorIterator {};
+</code></pre>
+<p>通过 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/atom/mma_traits_sm90_gmma.hpp#L362-L374">MakeTensor</a> 定制点创建 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/atom/mma_traits_sm90_gmma.hpp#L315-L364">smem_desc</a> 张量：</p>
+<pre><code class="language-cpp">// Customization point for creating a GMMA::smem_desc Tensor
+template &lt;SM90::GMMA::Major MajorMode&gt;
+struct MakeTensor&lt;SMMA::GMMA::smem_desc&lt;MajorMode&gt;&gt;
+{
+  template &lt;class TEngine, class TLayout&gt;
+  CUTE_HOST_DEVICE constexpr auto
+  operator()(Tensor&lt;TEngine,TLayout&gt; const&amp; smem_tensor)
+  {
+    static_assert(is_smem&lt;TEngine&gt;::value, &quot;Expected SMEM Tensor to construct a GMMA Desc Tensor&quot;);
+    return make_tensor(SM90::GMMA::DescriptorIterator{SM90::GMMA::make_gmma_desc&lt;MajorMode&gt;(tensor&lt;0&gt;(smem_tensor))},
+                       replace&lt;0&gt;(recast&lt;uint128_t const&gt;(smem_tensor).layout(), Layout&lt;_1,_0&gt;{}));
+  }
+};
+</code></pre>
+<h2 id="gmma_1">GMMA 内存布局</h2>
+<p>GMMA 支持多种共享内存布局，包括 M|N-major 和 K-major 布局：</p>
+<h3 id="mn-major">M|N-major 布局</h3>
+<pre><code class="language-cpp">// M|N-major GMMA layouts in units of bits
+using Layout_MN_INTER_Atom_Bits = ComposedLayout&lt;Swizzle&lt;0,4,3&gt;, smem_ptr_flag, Layout&lt;Shape&lt; _128,_8&gt;,Stride&lt;_1, _128&gt;&gt;&gt;;
+using Layout_MN_SW32_Atom_Bits  = ComposedLayout&lt;Swizzle&lt;1,4,3&gt;, smem_ptr_flag, Layout&lt;Shape&lt; _256,_8&gt;,Stride&lt;_1, _256&gt;&gt;&gt;;
+using Layout_MN_SW64_Atom_Bits  = ComposedLayout&lt;Swizzle&lt;2,4,3&gt;, smem_ptr_flag, Layout&lt;Shape&lt; _512,_8&gt;,Stride&lt;_1, _512&gt;&gt;&gt;;
+using Layout_MN_SW128_Atom_Bits = ComposedLayout&lt;Swizzle&lt;3,4,3&gt;, smem_ptr_flag, Layout&lt;Shape&lt;_1024,_8&gt;,Stride&lt;_1,_1024&gt;&gt;&gt;;
+</code></pre>
+<h3 id="k-major">K-major 布局</h3>
+<pre><code class="language-cpp">// K-major GMMA layouts in units of bits
+using Layout_K_INTER_Atom_Bits  = ComposedLayout&lt;Swizzle&lt;0,4,3&gt;, smem_ptr_flag, Layout&lt;Shape&lt;_8, _128&gt;,Stride&lt; _128,_1&gt;&gt;&gt;;
+using Layout_K_SW32_Atom_Bits   = ComposedLayout&lt;Swizzle&lt;1,4,3&gt;, smem_ptr_flag, Layout&lt;Shape&lt;_8, _256&gt;,Stride&lt; _256,_1&gt;&gt;&gt;;
+using Layout_K_SW64_Atom_Bits   = ComposedLayout&lt;Swizzle&lt;2,4,3&gt;, smem_ptr_flag, Layout&lt;Shape&lt;_8, _512&gt;,Stride&lt; _512,_1&gt;&gt;&gt;;
+using Layout_K_SW128_Atom_Bits  = ComposedLayout&lt;Swizzle&lt;3,4,3&gt;, smem_ptr_flag, Layout&lt;Shape&lt;_8,_1024&gt;,Stride&lt;_1024,_1&gt;&gt;&gt;;
+</code></pre>
+<h2 id="gmma_2">GMMA 操作示例</h2>
+<p>典型的 GMMA 操作使用示例：</p>
+<pre><code class="language-cpp">// 定义输入张量 A、B 和累加张量 C
+auto A_tensor = make_tensor(A_ptr, A_layout);
+auto B_tensor = make_tensor(B_ptr, B_layout);
+auto C_tensor = make_tensor(C_ptr, C_layout);
+
+// 创建 GMMA 操作对象
+auto mma_atom = MMA_Atom&lt;SM90_64x64x16_F32F16F16F32_NT&gt;{};
+
+// 获取 MMA 操作的参与者
+auto mma_thr = mma_atom.get_thread_slice(thread_idx);
+
+// 创建累加片段
+auto accum_fragment = make_fragment_like(C_tensor);
+clear(accum_fragment);
+
+// 执行 MMA 操作
+mma_thr.call(A_tensor, B_tensor, accum_fragment);
+</code></pre>
+<h2 id="_1">总结</h2>
+<p>SM90 架构中的 GMMA 指令提供了强大的矩阵运算能力，通过 <a href="file:///Users/joycezhao/workspace/cutlass-doc/cutlass/include/cute/arch/mma_sm90_desc.hpp#L58-L87">GmmaDescriptor</a> 和相关的布局工具，开发者可以高效地利用共享内存进行大规模矩阵运算。理解这些概念和工具对于充分利用 Hopper 架构的计算能力至关重要。</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../cute_mma/" class="btn btn-neutral float-left" title="MMA 操作详解"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../cute_examples/" class="btn btn-neutral float-right" title="实际应用示例">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../cute_mma/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../cute_examples/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
